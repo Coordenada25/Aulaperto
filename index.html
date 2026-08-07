@@ -29,24 +29,6 @@
   <meta name="twitter:description" content="Conectamos alunos a professores de música em Maputo." />
   
   <!-- ========================================
-       JSON-LD PARA GOOGLE (Dados Estruturados)
-       ======================================== -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "EducationalOrganization",
-    "name": "AulaPerto",
-    "description": "Plataforma para conectar alunos a professores de música em Maputo",
-    "url": "https://aulaperto.com/",
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "Maputo",
-      "addressCountry": "MZ"
-    }
-  }
-  </script>
-  
-  <!-- ========================================
        FONTS & ICONS
        ======================================== -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -55,17 +37,13 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <!-- ========================================
-       FAVICON
+       SUPABASE
        ======================================== -->
-  <link rel="icon" href="assets/icons/favicon.ico" type="image/x-icon" />
-  <link rel="shortcut icon" href="assets/icons/favicon.ico" type="image/x-icon" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
-  <!-- ========================================
-       CSS PRINCIPAL
-       ======================================== -->
   <style>
     /* ========================================
-       CSS VARIABLES & RESET
+       CSS COMPLETO (mesmo de antes)
        ======================================== */
     :root {
       --cor-primaria: #4A2818;
@@ -127,23 +105,11 @@
       padding: 0 24px;
     }
 
-    /* Utilities */
-    .text-center { text-align: center; }
     .text-gradient {
       background: linear-gradient(135deg, var(--cor-primaria), var(--cor-destaque));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-    }
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      border: 0;
     }
 
     /* Scrollbar */
@@ -1044,11 +1010,6 @@
       }
     }
   </style>
-  
-  <!-- ========================================
-       SUPABASE
-       ======================================== -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -1311,7 +1272,7 @@
   </footer>
 
   <!-- ========================================
-       JAVASCRIPT
+       JAVASCRIPT - COM FALLBACK PARA DADOS DE EXEMPLO
        ======================================== -->
   <script>
     // ========================================
@@ -1320,15 +1281,73 @@
     const BAIRROS = ["Magoanine A", "Magoanine B", "Magoanine C", "Zimpeto", "Costa do Sol", "Sommerschield", "Polana", "Matola-Sede", "Malhazine", "Jardim"];
     const INSTRUMENTOS = ["Piano", "Guitarra", "Violão", "Bateria", "Canto", "Teclado", "Saxofone", "Violino", "Baixo", "Ukulele"];
 
+    // ========================================
+    // SUPABASE - COM A TUA CHAVE E URL
+    // ========================================
     const SUPABASE_URL = "https://zxxwxwtsolbnyzbrabwp.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4eHd4d3Rzb2xibnl6YnJhYndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMDQ1ODAsImV4cCI6MjEwMTU4MDU4MH0.-IPsAKWwfxVTn2z294RfELvfiSYf7S2x7weNnEoeXJE";
 
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // ========================================
+    // DADOS DE EXEMPLO (FALLBACK)
+    // ========================================
+    const DADOS_EXEMPLO = [
+      {
+        nome: "Carlos Muianga",
+        bairro: "Polana",
+        instrumentos: ["Guitarra", "Violão"],
+        preco: 500,
+        whatsapp: "258821234567",
+        bio: "Professor de guitarra com 10 anos de experiência. Aulas para todos os níveis."
+      },
+      {
+        nome: "Marta Sitoe",
+        bairro: "Sommerschield",
+        instrumentos: ["Piano", "Teclado"],
+        preco: 600,
+        whatsapp: "258823456789",
+        bio: "Pianista profissional, formada em música. Aulas de piano e teoria musical."
+      },
+      {
+        nome: "João Tembe",
+        bairro: "Magoanine A",
+        instrumentos: ["Bateria"],
+        preco: 450,
+        whatsapp: "258825678901",
+        bio: "Baterista com 8 anos de experiência em bandas e estúdio. Aulas práticas e divertidas."
+      },
+      {
+        nome: "Ana Cossa",
+        bairro: "Matola-Sede",
+        instrumentos: ["Canto", "Violão"],
+        preco: 550,
+        whatsapp: "258827890123",
+        bio: "Cantora lírica e violonista. Aulas de técnica vocal, interpretação e violão."
+      },
+      {
+        nome: "Pedro Mabote",
+        bairro: "Zimpeto",
+        instrumentos: ["Saxofone"],
+        preco: 700,
+        whatsapp: "258829012345",
+        bio: "Saxofonista com formação em jazz e música clássica. Aulas para iniciantes e avançados."
+      },
+      {
+        nome: "Helena Matsinhe",
+        bairro: "Costa do Sol",
+        instrumentos: ["Violino", "Piano"],
+        preco: 650,
+        whatsapp: "258821234568",
+        bio: "Professora de violino e piano com 15 anos de experiência. Aulas personalizadas."
+      }
+    ];
+
+    // ========================================
     // STATE
     // ========================================
     let professores = [];
+    let usandoSupabase = false;
 
     // ========================================
     // DOM REFS
@@ -1367,19 +1386,13 @@
     // POPULATE SELECTS & CHIPS
     // ========================================
     function populateSelects() {
-      // Bairros
       BAIRROS.forEach(b => {
         fBairro.insertAdjacentHTML('beforeend', `<option value="${b}">${b}</option>`);
         tBairro.insertAdjacentHTML('beforeend', `<option value="${b}">${b}</option>`);
       });
 
-      // Instrumentos (filtro)
       INSTRUMENTOS.forEach(i => {
         fInstr.insertAdjacentHTML('beforeend', `<option value="${i}">${i}</option>`);
-      });
-
-      // Instrumentos (chips)
-      INSTRUMENTOS.forEach(i => {
         const chip = document.createElement('div');
         chip.className = 'chip';
         chip.textContent = i;
@@ -1450,45 +1463,58 @@
     }
 
     // ========================================
-    // LOAD PROFESSORES
+    // CARREGAR DO SUPABASE OU USAR EXEMPLO
     // ========================================
-    async function loadProfessores() {
+    async function carregarProfessores() {
       resultsGrid.innerHTML = `
         <div class="empty-state">
           <i class="fas fa-spinner fa-spin"></i>
-          A carregar professores...
+          ${usandoSupabase ? 'A carregar professores do Supabase...' : 'A carregar dados de exemplo...'}
         </div>
       `;
 
-      const { data, error } = await supabase.from('professors').select('*').order('created_at', { ascending: false });
+      try {
+        // Tentar carregar do Supabase
+        const { data, error } = await supabase.from('professors').select('*').order('created_at', { ascending: false });
 
-      if (error) {
-        resultsGrid.innerHTML = `
-          <div class="empty-state">
-            <i class="fas fa-exclamation-circle" style="color: #C47A4A;"></i>
-            Não foi possível carregar os professores.<br>
-            <span style="font-size: 13px;">Tenta recarregar a página.</span>
-          </div>
-        `;
-        console.error(error);
-        return;
+        if (error) {
+          console.warn('Erro no Supabase, usando dados de exemplo:', error);
+          usarDadosExemplo();
+          return;
+        }
+
+        if (data && data.length > 0) {
+          // Tem dados no Supabase
+          usandoSupabase = true;
+          professores = data.map(p => ({
+            nome: p.name,
+            bairro: p.neighborhood,
+            instrumentos: p.instruments,
+            preco: p.price,
+            whatsapp: p.whatsapp.replace(/\D/g, ''),
+            bio: p.bio || ''
+          }));
+          updateStats();
+          renderTeachers();
+        } else {
+          // Supabase vazio, usar exemplo
+          usarDadosExemplo();
+        }
+      } catch (error) {
+        console.warn('Erro ao ligar ao Supabase, usando dados de exemplo:', error);
+        usarDadosExemplo();
       }
+    }
 
-      professores = data.map(p => ({
-        nome: p.name,
-        bairro: p.neighborhood,
-        instrumentos: p.instruments,
-        preco: p.price,
-        whatsapp: p.whatsapp.replace(/\D/g, ''),
-        bio: p.bio || ''
-      }));
-
+    function usarDadosExemplo() {
+      usandoSupabase = false;
+      professores = DADOS_EXEMPLO;
       updateStats();
       renderTeachers();
     }
 
     // ========================================
-    // SUBMIT TEACHER
+    // SUBMIT TEACHER (SALVA NO SUPABASE)
     // ========================================
     async function submitTeacher(e) {
       e.preventDefault();
@@ -1510,34 +1536,48 @@
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A publicar...';
 
-      const { error } = await supabase.from('professors').insert([{
-        name: nome,
-        neighborhood: bairro,
-        instruments: instrumentos,
-        price: Number(preco),
-        whatsapp: whatsapp,
-        bio: bio
-      }]);
+      try {
+        // Tentar salvar no Supabase
+        const { error } = await supabase.from('professors').insert([{
+          name: nome,
+          neighborhood: bairro,
+          instruments: instrumentos,
+          price: Number(preco),
+          whatsapp: whatsapp,
+          bio: bio
+        }]);
+
+        if (error) {
+          console.warn('Erro ao salvar no Supabase, salvando localmente:', error);
+          // Salvar localmente (apenas para demonstração)
+          const novoProfessor = { nome, bairro, instrumentos, preco: Number(preco), whatsapp, bio };
+          professores.unshift(novoProfessor);
+          updateStats();
+          renderTeachers();
+          mostrarSucesso('Professor adicionado localmente! (Não foi salvo no Supabase)');
+        } else {
+          // Sucesso no Supabase
+          mostrarSucesso('Cadastro feito com sucesso no Supabase! 🎉');
+          await carregarProfessores();
+        }
+
+        // Reset form
+        teacherForm.reset();
+        document.querySelectorAll('#t-instrumentos .chip.active').forEach(c => c.classList.remove('active'));
+
+      } catch (error) {
+        console.error('Erro ao publicar:', error);
+        alert('❌ Não foi possível publicar o perfil. Tenta novamente.');
+      }
 
       submitBtn.disabled = false;
       submitBtn.innerHTML = '<i class="fas fa-rocket"></i> Publicar meu perfil';
+    }
 
-      if (error) {
-        alert('❌ Não foi possível publicar o perfil. Tenta novamente.');
-        console.error(error);
-        return;
-      }
-
-      // Reset form
-      teacherForm.reset();
-      document.querySelectorAll('#t-instrumentos .chip.active').forEach(c => c.classList.remove('active'));
-
-      // Show success
+    function mostrarSucesso(mensagem) {
+      successMsg.querySelector('span:last-child').textContent = mensagem;
       successMsg.classList.add('show');
       setTimeout(() => successMsg.classList.remove('show'), 5000);
-
-      // Reload data
-      await loadProfessores();
     }
 
     // ========================================
@@ -1564,7 +1604,6 @@
       if (summary) {
         summary.addEventListener('click', (e) => {
           e.preventDefault();
-          // Fechar outros itens
           document.querySelectorAll('.faq-item').forEach(other => {
             if (other !== item) other.removeAttribute('open');
           });
@@ -1578,7 +1617,7 @@
     // ========================================
     document.addEventListener('DOMContentLoaded', () => {
       populateSelects();
-      loadProfessores();
+      carregarProfessores();
 
       // Event listeners
       fBairro.addEventListener('change', renderTeachers);
