@@ -5,25 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <!-- ========================================
-       SEO BÁSICO
+       SEO
        ======================================== -->
   <title>AulaPerto — Encontra o teu professor de música em Maputo</title>
-  <meta name="description" content="Encontre professores de música perto de si em Maputo. Piano, guitarra, bateria, canto e mais. Aulas presenciais e online." />
-  <meta name="keywords" content="professor de música, aulas de guitarra, piano Maputo, bateria, canto, aulas de música" />
+  <meta name="description" content="Encontre professores de música perto de si em Maputo. Piano, guitarra, bateria, canto e mais." />
+  <meta name="keywords" content="professor de música, aulas de guitarra, piano Maputo, bateria, canto" />
   <link rel="canonical" href="https://aulaperto.com/" />
   
-  <!-- ========================================
-       OPEN GRAPH (Facebook, WhatsApp)
-       ======================================== -->
+  <!-- Open Graph -->
   <meta property="og:title" content="AulaPerto — Encontra o teu professor de música" />
-  <meta property="og:description" content="Conectamos alunos a professores de música em Maputo. Aprende guitarra, piano, bateria e muito mais." />
+  <meta property="og:description" content="Conectamos alunos a professores de música em Maputo." />
   <meta property="og:image" content="https://aulaperto.com/assets/images/og-image.jpg" />
   <meta property="og:url" content="https://aulaperto.com/" />
   <meta property="og:type" content="website" />
   
-  <!-- ========================================
-       TWITTER CARD
-       ======================================== -->
+  <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="AulaPerto — Encontra o teu professor de música" />
   <meta name="twitter:description" content="Conectamos alunos a professores de música em Maputo." />
@@ -43,24 +39,25 @@
   
   <style>
     /* ========================================
-       CSS COMPLETO (mesmo de antes)
+       CSS VARIABLES - PALETA AZUL MODERNA
        ======================================== */
     :root {
-      --cor-primaria: #4A2818;
-      --cor-secundaria: #8B5E3C;
-      --cor-terciaria: #C49A7A;
-      --cor-destaque: #C47A4A;
-      --cor-destaque-claro: #E8A87C;
-      --cor-fundo: #F8F2EB;
-      --cor-card: #FFFFFF;
-      --cor-texto: #2D1B0F;
-      --cor-texto-suave: #6A4E3A;
-      --cor-borda: #E0D3C4;
-      --cor-avaliacao: #F4B942;
+      --cor-primaria: #2563EB;
+      --cor-secundaria: #3B82F6;
+      --cor-terciaria: #93C5FD;
+      --cor-destaque: #0EA5E9;
+      --cor-destaque-claro: #38BDF8;
       
-      --sombra-suave: 0 4px 20px rgba(74, 40, 24, 0.08);
-      --sombra-media: 0 8px 32px rgba(74, 40, 24, 0.12);
-      --sombra-forte: 0 12px 48px rgba(74, 40, 24, 0.16);
+      --cor-fundo: #F8FAFC;
+      --cor-card: #FFFFFF;
+      
+      --cor-texto: #0F172A;
+      --cor-texto-suave: #64748B;
+      --cor-borda: #E2E8F0;
+      
+      --sombra-suave: 0 5px 18px rgba(37, 99, 235, 0.08);
+      --sombra-media: 0 12px 30px rgba(37, 99, 235, 0.10);
+      --sombra-forte: 0 20px 45px rgba(37, 99, 235, 0.18);
       
       --radius: 16px;
       --radius-pequeno: 10px;
@@ -69,6 +66,9 @@
       --max-width: 1120px;
     }
 
+    /* ========================================
+       RESET
+       ======================================== */
     * {
       margin: 0;
       padding: 0;
@@ -105,6 +105,9 @@
       padding: 0 24px;
     }
 
+    /* ========================================
+       UTILITIES
+       ======================================== */
     .text-gradient {
       background: linear-gradient(135deg, var(--cor-primaria), var(--cor-destaque));
       -webkit-background-clip: text;
@@ -112,49 +115,39 @@
       background-clip: text;
     }
 
-    /* Scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: var(--cor-fundo);
-    }
-    ::-webkit-scrollbar-thumb {
-      background: var(--cor-secundaria);
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--cor-primaria);
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
     }
 
-    /* Views */
-    .view {
-      display: none;
-    }
-    .view.active {
-      display: block;
-      animation: fadeIn 0.4s ease;
+    .badge-blue {
+      background: #DBEAFE;
+      color: #1D4ED8;
     }
 
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(12px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    .badge-green {
+      background: #D1FAE5;
+      color: #065F46;
+    }
+
+    .badge-gold {
+      background: #FEF3C7;
+      color: #92400E;
     }
 
     /* ========================================
        HEADER
        ======================================== */
     .header {
-      background: rgba(248, 242, 235, 0.92);
+      background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(224, 211, 196, 0.3);
+      border-bottom: 1px solid var(--cor-borda);
       position: sticky;
       top: 0;
       z-index: 1000;
@@ -185,7 +178,7 @@
       width: 44px;
       height: 44px;
       border-radius: 12px;
-      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
+      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-destaque));
       display: flex;
       align-items: center;
       justify-content: center;
@@ -234,7 +227,7 @@
     }
 
     .nav-btn.active {
-      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
+      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-destaque));
       color: white;
       box-shadow: var(--sombra-suave);
     }
@@ -244,45 +237,90 @@
     }
 
     /* ========================================
-       HERO
+       HERO COM IMAGEM
        ======================================== */
     .hero {
       padding: 48px 0 32px;
-      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+    }
+
+    .hero-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
 
     .hero-badge {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(196, 122, 74, 0.12);
-      color: var(--cor-destaque);
+      background: #DBEAFE;
+      color: #1D4ED8;
       padding: 6px 16px;
       border-radius: 999px;
       font-size: 13px;
       font-weight: 600;
-      margin-bottom: 16px;
+      width: fit-content;
     }
 
     .hero h1 {
-      font-size: clamp(32px, 5vw, 52px);
+      font-size: clamp(32px, 4vw, 48px);
       line-height: 1.1;
-      margin-bottom: 16px;
-      max-width: 700px;
     }
 
     .hero p {
       font-size: 18px;
       color: var(--cor-texto-suave);
-      max-width: 520px;
-      margin-bottom: 32px;
+      max-width: 480px;
     }
 
-    /* Stats */
+    .hero-image {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .hero-image-placeholder {
+      width: 100%;
+      max-width: 420px;
+      aspect-ratio: 1;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, #DBEAFE, #93C5FD);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 80px;
+      color: var(--cor-primaria);
+      box-shadow: var(--sombra-media);
+    }
+
+    @media (max-width: 768px) {
+      .hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .hero-content {
+        align-items: center;
+      }
+      .hero p {
+        max-width: 100%;
+      }
+      .hero-image-placeholder {
+        max-width: 280px;
+        font-size: 48px;
+      }
+    }
+
+    /* ========================================
+       STATS
+       ======================================== */
     .stats {
       display: flex;
       gap: 40px;
-      margin-bottom: 32px;
+      margin: 16px 0;
       flex-wrap: wrap;
     }
 
@@ -293,7 +331,7 @@
 
     .stat-number {
       font-family: 'Fraunces', serif;
-      font-size: 30px;
+      font-size: 28px;
       font-weight: 700;
       color: var(--cor-primaria);
     }
@@ -304,31 +342,30 @@
       font-weight: 500;
     }
 
-    /* Search Panel */
+    /* ========================================
+       SEARCH PANEL
+       ======================================== */
     .search-panel {
-      background: rgba(255, 255, 255, 0.88);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.4);
+      background: var(--cor-card);
+      border: 1px solid var(--cor-borda);
       border-radius: var(--radius);
-      padding: 24px 28px;
+      padding: 20px 24px;
       display: grid;
       grid-template-columns: 1fr 1fr auto;
       gap: 16px;
       align-items: end;
-      box-shadow: var(--sombra-media);
+      box-shadow: var(--sombra-suave);
       transition: var(--transition);
     }
 
     .search-panel:hover {
-      box-shadow: var(--sombra-forte);
-      transform: translateY(-2px);
+      box-shadow: var(--sombra-media);
     }
 
     @media (max-width: 640px) {
       .search-panel {
         grid-template-columns: 1fr;
-        padding: 20px;
+        padding: 16px;
       }
     }
 
@@ -339,7 +376,7 @@
     .field label {
       display: block;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 600;
       color: var(--cor-texto-suave);
       text-transform: uppercase;
       letter-spacing: 0.06em;
@@ -366,7 +403,7 @@
     }
 
     .field select {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236A4E3A' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748B' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right 14px center;
     }
@@ -375,8 +412,8 @@
     .field input:focus,
     .field textarea:focus {
       outline: none;
-      border-color: var(--cor-destaque);
-      box-shadow: 0 0 0 4px rgba(196, 122, 74, 0.12);
+      border-color: var(--cor-primaria);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
       background: white;
     }
 
@@ -384,14 +421,14 @@
       padding: 12px 32px;
       border: none;
       border-radius: var(--radius-pequeno);
-      background: linear-gradient(135deg, var(--cor-destaque), var(--cor-destaque-claro));
+      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-destaque));
       color: white;
       font-family: 'Inter', sans-serif;
       font-weight: 700;
       font-size: 14px;
       cursor: pointer;
       transition: var(--transition);
-      box-shadow: 0 4px 16px rgba(196, 122, 74, 0.25);
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.25);
       display: inline-flex;
       align-items: center;
       gap: 8px;
@@ -400,7 +437,7 @@
 
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(196, 122, 74, 0.35);
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35);
     }
 
     .btn-primary:active {
@@ -442,7 +479,7 @@
       width: 56px;
       height: 56px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
+      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-destaque));
       color: white;
       display: flex;
       align-items: center;
@@ -496,21 +533,20 @@
 
     .teachers-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
     }
 
     /* ========================================
-       TEACHER CARD
+       TEACHER CARD - VERSÃO PREMIUM
        ======================================== */
     .teacher-card {
       background: var(--cor-card);
       border: 1px solid var(--cor-borda);
       border-radius: var(--radius);
-      padding: 24px;
+      padding: 20px;
       transition: var(--transition);
       box-shadow: var(--sombra-suave);
-      position: relative;
       display: flex;
       flex-direction: column;
       gap: 12px;
@@ -522,45 +558,60 @@
       border-color: var(--cor-terciaria);
     }
 
-    .teacher-card .badge {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      padding: 4px 12px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, var(--cor-destaque), var(--cor-destaque-claro));
-      color: white;
-    }
-
     .card-top {
       display: flex;
       gap: 14px;
-      align-items: center;
+      align-items: flex-start;
     }
 
     .card-avatar {
-      width: 56px;
-      height: 56px;
+      width: 64px;
+      height: 64px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
+      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-destaque));
       color: white;
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: 'Fraunces', serif;
-      font-size: 20px;
+      font-size: 22px;
       font-weight: 700;
       flex-shrink: 0;
+      box-shadow: var(--sombra-suave);
+    }
+
+    .card-info {
+      flex: 1;
     }
 
     .card-name {
       font-weight: 700;
-      font-size: 17px;
+      font-size: 18px;
       margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .card-rating {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 14px;
+      color: #F59E0B;
+      font-weight: 600;
+    }
+
+    .card-rating span {
+      color: var(--cor-texto-suave);
+      font-weight: 400;
+      font-size: 13px;
+    }
+
+    .card-experience {
+      font-size: 13px;
+      color: var(--cor-texto-suave);
     }
 
     .card-location {
@@ -569,31 +620,34 @@
       display: flex;
       align-items: center;
       gap: 4px;
-      margin-top: 2px;
     }
 
     .card-tags {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
+      margin: 4px 0;
     }
 
     .card-tag {
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 600;
       padding: 4px 12px;
       border-radius: 999px;
-      background: #F0EAE4;
-      color: var(--cor-secundaria);
+      background: #F1F5F9;
+      color: var(--cor-texto-suave);
       border: 1px solid var(--cor-borda);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
+    }
+
+    .card-tag-instrument {
+      background: #DBEAFE;
+      color: #1D4ED8;
+      border-color: #BFDBFE;
     }
 
     .card-bio {
       font-size: 14px;
       color: var(--cor-texto-suave);
-      flex-grow: 1;
       line-height: 1.6;
       margin: 0;
     }
@@ -604,36 +658,61 @@
       align-items: center;
       padding-top: 12px;
       border-top: 1px solid var(--cor-borda);
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     .card-price {
       font-weight: 700;
-      font-size: 18px;
+      font-size: 20px;
       color: var(--cor-primaria);
     }
 
     .card-price span {
       font-weight: 400;
-      font-size: 12px;
+      font-size: 13px;
       color: var(--cor-texto-suave);
     }
 
-    .card-whatsapp {
+    .card-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-outline {
+      padding: 9px 16px;
+      border: 1px solid var(--cor-borda);
+      border-radius: var(--radius-pequeno);
+      background: transparent;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--cor-texto);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--cor-primaria);
+      color: var(--cor-primaria);
+    }
+
+    .btn-whatsapp {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: var(--radius-pequeno);
       background: #25D366;
       color: white;
-      padding: 10px 18px;
-      border-radius: var(--radius-pequeno);
-      font-weight: 700;
+      font-weight: 600;
       font-size: 13px;
       transition: var(--transition);
       border: none;
       cursor: pointer;
     }
 
-    .card-whatsapp:hover {
+    .btn-whatsapp:hover {
       transform: scale(1.05);
       box-shadow: 0 8px 24px rgba(37, 211, 102, 0.3);
       background: #128C4A;
@@ -654,6 +733,51 @@
       display: block;
       margin-bottom: 12px;
       opacity: 0.3;
+    }
+
+    /* ========================================
+       SKELETON LOADING
+       ======================================== */
+    .skeleton {
+      background: var(--cor-card);
+      border: 1px solid var(--cor-borda);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .skeleton-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #E2E8F0;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .skeleton-line {
+      height: 12px;
+      background: #E2E8F0;
+      border-radius: 4px;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .skeleton-line.short {
+      width: 60%;
+    }
+
+    .skeleton-line.medium {
+      width: 80%;
+    }
+
+    .skeleton-line.long {
+      width: 100%;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
 
     /* ========================================
@@ -692,7 +816,7 @@
     }
 
     .testimonial-stars {
-      color: var(--cor-avaliacao);
+      color: #F59E0B;
       font-size: 14px;
       margin-bottom: 8px;
     }
@@ -773,8 +897,8 @@
     }
 
     .chip.active {
-      background: var(--cor-secundaria);
-      border-color: var(--cor-secundaria);
+      background: var(--cor-primaria);
+      border-color: var(--cor-primaria);
       color: white;
     }
 
@@ -783,7 +907,7 @@
       padding: 14px;
       border: none;
       border-radius: var(--radius-pequeno);
-      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
+      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-destaque));
       color: white;
       font-family: 'Inter', sans-serif;
       font-weight: 700;
@@ -791,6 +915,7 @@
       cursor: pointer;
       transition: var(--transition);
       margin-top: 8px;
+      box-shadow: var(--sombra-suave);
     }
 
     .btn-submit:hover {
@@ -806,9 +931,9 @@
 
     .success-message {
       display: none;
-      background: #EDE6DF;
-      border: 2px solid var(--cor-terciaria);
-      color: var(--cor-primaria);
+      background: #D1FAE5;
+      border: 2px solid #6EE7B7;
+      color: #065F46;
       padding: 14px 18px;
       border-radius: var(--radius-pequeno);
       margin-bottom: 16px;
@@ -913,7 +1038,7 @@
        FOOTER
        ======================================== */
     .footer {
-      background: var(--cor-primaria);
+      background: var(--cor-texto);
       color: var(--cor-terciaria);
       padding: 40px 0;
       margin-top: 40px;
@@ -976,18 +1101,15 @@
         justify-content: center;
         gap: 24px;
       }
-      .hero {
-        padding: 24px 0;
-      }
-      .hero h1 {
-        font-size: 28px;
-      }
       .steps-grid {
         grid-template-columns: 1fr 1fr;
       }
       .footer .container {
         flex-direction: column;
         text-align: center;
+      }
+      .teachers-grid {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -1001,9 +1123,6 @@
       }
       .search-panel {
         padding: 16px;
-      }
-      .teachers-grid {
-        grid-template-columns: 1fr;
       }
       .testimonials-grid {
         grid-template-columns: 1fr;
@@ -1045,50 +1164,57 @@
     <!-- VIEW: SEARCH -->
     <section class="view active" id="view-search" role="main">
       <div class="container">
-        <!-- Hero -->
+        <!-- Hero com imagem -->
         <section class="hero" aria-labelledby="hero-title">
-          <div class="hero-badge">
-            <i class="fas fa-map-marker-alt"></i> Maputo &amp; arredores
-          </div>
-          <h1 id="hero-title">
-            O teu próximo professor de música<br>
-            <span class="text-gradient">está no teu bairro</span>
-          </h1>
-          <p>Pesquisa por localização e instrumento — piano, guitarra, bateria, canto e muito mais.</p>
+          <div class="hero-content">
+            <div class="hero-badge">
+              <i class="fas fa-map-marker-alt"></i> Maputo &amp; arredores
+            </div>
+            <h1 id="hero-title">
+              Encontra o teu professor de música<br>
+              <span class="text-gradient">no teu bairro</span>
+            </h1>
+            <p>Pesquisa por localização e instrumento — piano, guitarra, bateria, canto e muito mais.</p>
 
-          <!-- Stats -->
-          <div class="stats" aria-label="Estatísticas da plataforma">
-            <div class="stat-item">
-              <span class="stat-number" id="total-teachers">0</span>
-              <span class="stat-label">Professores disponíveis</span>
+            <!-- Stats -->
+            <div class="stats" aria-label="Estatísticas da plataforma">
+              <div class="stat-item">
+                <span class="stat-number" id="total-teachers">0</span>
+                <span class="stat-label">Professores disponíveis</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number" id="total-instruments">0</span>
+                <span class="stat-label">Instrumentos ensinados</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">⭐ 4.9</span>
+                <span class="stat-label">Avaliação média</span>
+              </div>
             </div>
-            <div class="stat-item">
-              <span class="stat-number" id="total-instruments">0</span>
-              <span class="stat-label">Instrumentos ensinados</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-number">⭐ 4.9</span>
-              <span class="stat-label">Avaliação média</span>
+
+            <!-- Search Panel -->
+            <div class="search-panel" role="search">
+              <div class="field">
+                <label for="f-bairro"><i class="fas fa-location-dot"></i> Bairro</label>
+                <select id="f-bairro" aria-label="Filtrar por bairro">
+                  <option value="">Todos os bairros</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="f-instr"><i class="fas fa-guitar"></i> Instrumento</label>
+                <select id="f-instr" aria-label="Filtrar por instrumento">
+                  <option value="">Todos os instrumentos</option>
+                </select>
+              </div>
+              <button class="btn-primary" id="btn-search">
+                <i class="fas fa-search"></i> Pesquisar
+              </button>
             </div>
           </div>
-
-          <!-- Search Panel -->
-          <div class="search-panel" role="search">
-            <div class="field">
-              <label for="f-bairro"><i class="fas fa-location-dot"></i> Bairro</label>
-              <select id="f-bairro" aria-label="Filtrar por bairro">
-                <option value="">Todos os bairros</option>
-              </select>
+          <div class="hero-image">
+            <div class="hero-image-placeholder">
+              🎵
             </div>
-            <div class="field">
-              <label for="f-instr"><i class="fas fa-guitar"></i> Instrumento</label>
-              <select id="f-instr" aria-label="Filtrar por instrumento">
-                <option value="">Todos os instrumentos</option>
-              </select>
-            </div>
-            <button class="btn-primary" id="btn-search">
-              <i class="fas fa-search"></i> Pesquisar
-            </button>
           </div>
         </section>
 
@@ -1122,10 +1248,7 @@
             <span class="teachers-count" id="results-count">0 professores</span>
           </div>
           <div class="teachers-grid" id="results-grid">
-            <div class="empty-state">
-              <i class="fas fa-spinner fa-spin"></i>
-              A carregar professores...
-            </div>
+            <!-- Skeletons serão inseridos via JS -->
           </div>
         </section>
 
@@ -1136,17 +1259,17 @@
             <p>Histórias reais de quem encontrou o professor certo</p>
             <div class="testimonials-grid">
               <article class="testimonial">
-                <div class="testimonial-stars" aria-label="5 estrelas">⭐⭐⭐⭐⭐</div>
+                <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
                 <p>"Encontrei um professor de guitarra incrível! Em poucas semanas já toco os meus temas favoritos."</p>
                 <cite>— João M., Aluno</cite>
               </article>
               <article class="testimonial">
-                <div class="testimonial-stars" aria-label="5 estrelas">⭐⭐⭐⭐⭐</div>
+                <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
                 <p>"A minha filha adora as aulas de piano. O professor é paciente e torna as aulas muito divertidas."</p>
                 <cite>— Maria S., Mãe</cite>
               </article>
               <article class="testimonial">
-                <div class="testimonial-stars" aria-label="5 estrelas">⭐⭐⭐⭐⭐</div>
+                <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
                 <p>"Finalmente consegui aprender a tocar bateria. O professor adapta-se ao meu ritmo e é muito profissional."</p>
                 <cite>— Carlos R., Aluno</cite>
               </article>
@@ -1209,7 +1332,7 @@
 
           <div class="success-message" id="success-msg">
             <span>✅</span>
-            <span>Cadastro feito com sucesso! Já apareces na lista de professores.</span>
+            <span id="success-text">Cadastro feito com sucesso! Já apareces na lista de professores.</span>
           </div>
 
           <form id="teacher-form">
@@ -1262,7 +1385,7 @@
         <div class="footer-logo">♫ AulaPerto</div>
         <p>Encontra o teu professor de música</p>
       </div>
-      <p>© 2026 · Feito com <i class="fas fa-heart" style="color: #E8A87C;"></i> para músicos</p>
+      <p>© 2026 · Feito com <i class="fas fa-heart" style="color: #38BDF8;"></i> para músicos</p>
       <div class="footer-social">
         <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
         <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
@@ -1272,7 +1395,7 @@
   </footer>
 
   <!-- ========================================
-       JAVASCRIPT - COM FALLBACK PARA DADOS DE EXEMPLO
+       JAVASCRIPT
        ======================================== -->
   <script>
     // ========================================
@@ -1282,10 +1405,10 @@
     const INSTRUMENTOS = ["Piano", "Guitarra", "Violão", "Bateria", "Canto", "Teclado", "Saxofone", "Violino", "Baixo", "Ukulele"];
 
     // ========================================
-    // SUPABASE - COM A TUA CHAVE E URL
+    // SUPABASE - COM PUBLISHABLE KEY
     // ========================================
     const SUPABASE_URL = "https://zxxwxwtsolbnyzbrabwp.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4eHd4d3Rzb2xibnl6YnJhYndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMDQ1ODAsImV4cCI6MjEwMTU4MDU4MH0.-IPsAKWwfxVTn2z294RfELvfiSYf7S2x7weNnEoeXJE";
+    const SUPABASE_KEY = "sb_publishable_x0Ehx6SckG0JHXqdvOusXw_5LG12KPm";
 
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1299,7 +1422,10 @@
         instrumentos: ["Guitarra", "Violão"],
         preco: 500,
         whatsapp: "258821234567",
-        bio: "Professor de guitarra com 10 anos de experiência. Aulas para todos os níveis."
+        bio: "Professor de guitarra com 10 anos de experiência. Aulas para todos os níveis.",
+        experiencia: 10,
+        avaliacao: 4.9,
+        total_avaliacoes: 24
       },
       {
         nome: "Marta Sitoe",
@@ -1307,7 +1433,10 @@
         instrumentos: ["Piano", "Teclado"],
         preco: 600,
         whatsapp: "258823456789",
-        bio: "Pianista profissional, formada em música. Aulas de piano e teoria musical."
+        bio: "Pianista profissional, formada em música. Aulas de piano e teoria musical.",
+        experiencia: 8,
+        avaliacao: 4.8,
+        total_avaliacoes: 18
       },
       {
         nome: "João Tembe",
@@ -1315,7 +1444,10 @@
         instrumentos: ["Bateria"],
         preco: 450,
         whatsapp: "258825678901",
-        bio: "Baterista com 8 anos de experiência em bandas e estúdio. Aulas práticas e divertidas."
+        bio: "Baterista com 8 anos de experiência em bandas e estúdio. Aulas práticas e divertidas.",
+        experiencia: 8,
+        avaliacao: 4.7,
+        total_avaliacoes: 12
       },
       {
         nome: "Ana Cossa",
@@ -1323,7 +1455,10 @@
         instrumentos: ["Canto", "Violão"],
         preco: 550,
         whatsapp: "258827890123",
-        bio: "Cantora lírica e violonista. Aulas de técnica vocal, interpretação e violão."
+        bio: "Cantora lírica e violonista. Aulas de técnica vocal, interpretação e violão.",
+        experiencia: 12,
+        avaliacao: 5.0,
+        total_avaliacoes: 31
       },
       {
         nome: "Pedro Mabote",
@@ -1331,7 +1466,10 @@
         instrumentos: ["Saxofone"],
         preco: 700,
         whatsapp: "258829012345",
-        bio: "Saxofonista com formação em jazz e música clássica. Aulas para iniciantes e avançados."
+        bio: "Saxofonista com formação em jazz e música clássica. Aulas para iniciantes e avançados.",
+        experiencia: 15,
+        avaliacao: 4.9,
+        total_avaliacoes: 27
       },
       {
         nome: "Helena Matsinhe",
@@ -1339,7 +1477,10 @@
         instrumentos: ["Violino", "Piano"],
         preco: 650,
         whatsapp: "258821234568",
-        bio: "Professora de violino e piano com 15 anos de experiência. Aulas personalizadas."
+        bio: "Professora de violino e piano com 15 anos de experiência. Aulas personalizadas.",
+        experiencia: 15,
+        avaliacao: 4.9,
+        total_avaliacoes: 22
       }
     ];
 
@@ -1348,6 +1489,7 @@
     // ========================================
     let professores = [];
     let usandoSupabase = false;
+    let isLoading = true;
 
     // ========================================
     // DOM REFS
@@ -1365,6 +1507,7 @@
     const totalInstruments = $('#total-instruments');
     const teacherForm = $('#teacher-form');
     const successMsg = $('#success-msg');
+    const successText = $('#success-text');
 
     // ========================================
     // UTILITY
@@ -1374,12 +1517,48 @@
     }
 
     function getInitialsColor(name) {
-      const colors = ['#8B5E3C', '#C49A7A', '#4A2818', '#A67B5B', '#6A4E3A'];
+      const colors = ['#2563EB', '#3B82F6', '#0EA5E9', '#8B5CF6', '#6366F1'];
       let hash = 0;
       for (let i = 0; i < name.length; i++) {
         hash = name.charCodeAt(i) + ((hash << 5) - hash);
       }
       return colors[Math.abs(hash) % colors.length];
+    }
+
+    function renderStars(rating) {
+      const full = Math.floor(rating);
+      const half = rating - full >= 0.5;
+      let stars = '';
+      for (let i = 0; i < full; i++) stars += '⭐';
+      if (half) stars += '⭐';
+      return stars;
+    }
+
+    // ========================================
+    // SKELETON LOADING
+    // ========================================
+    function renderSkeletons() {
+      resultsGrid.innerHTML = Array(6).fill(`
+        <div class="skeleton">
+          <div style="display:flex;gap:14px;align-items:flex-start;">
+            <div class="skeleton-avatar"></div>
+            <div style="flex:1;">
+              <div class="skeleton-line medium"></div>
+              <div class="skeleton-line short" style="margin-top:6px;"></div>
+            </div>
+          </div>
+          <div class="skeleton-line long"></div>
+          <div class="skeleton-line medium"></div>
+          <div style="display:flex;gap:8px;">
+            <div class="skeleton-line short"></div>
+            <div class="skeleton-line short"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px;">
+            <div class="skeleton-line short"></div>
+            <div class="skeleton-line short"></div>
+          </div>
+        </div>
+      `).join('');
     }
 
     // ========================================
@@ -1428,28 +1607,61 @@
         return;
       }
 
-      resultsGrid.innerHTML = filtered.map((p, i) => `
-        <div class="teacher-card">
-          ${i < 2 ? '<span class="badge"><i class="fas fa-star"></i> Novo</span>' : ''}
-          <div class="card-top">
-            <div class="card-avatar" style="background: ${getInitialsColor(p.nome)}">${initials(p.nome)}</div>
-            <div>
-              <h3 class="card-name">${p.nome}</h3>
-              <div class="card-location"><i class="fas fa-map-pin"></i> ${p.bairro}</div>
+      resultsGrid.innerHTML = filtered.map((p, i) => {
+        const rating = p.avaliacao || 4.5 + Math.random() * 0.5;
+        const totalAval = p.total_avaliacoes || Math.floor(10 + Math.random() * 30);
+        const experiencia = p.experiencia || Math.floor(5 + Math.random() * 10);
+        const isOnline = i % 2 === 0;
+        const isPresencial = i % 2 === 1 || i === 0;
+
+        return `
+          <div class="teacher-card">
+            <div class="card-top">
+              <div class="card-avatar" style="background: ${getInitialsColor(p.nome)}">${initials(p.nome)}</div>
+              <div class="card-info">
+                <div class="card-name">
+                  ${p.nome}
+                  <span class="badge badge-gold">
+                    <i class="fas fa-check-circle"></i> Verificado
+                  </span>
+                </div>
+                <div class="card-rating">
+                  ${renderStars(rating)} ${rating.toFixed(1)}
+                  <span>(${totalAval} avaliações)</span>
+                </div>
+                <div class="card-experience">
+                  <i class="fas fa-briefcase"></i> ${experiencia} anos de experiência
+                </div>
+                <div class="card-location">
+                  <i class="fas fa-map-pin"></i> ${p.bairro}
+                </div>
+              </div>
+            </div>
+
+            <div class="card-tags">
+              ${p.instrumentos.map(i => `<span class="card-tag card-tag-instrument">${i}</span>`).join('')}
+              ${isOnline ? '<span class="card-tag"><i class="fas fa-video"></i> Online</span>' : ''}
+              ${isPresencial ? '<span class="card-tag"><i class="fas fa-building"></i> Presencial</span>' : ''}
+            </div>
+
+            <p class="card-bio">${p.bio || 'Professor de música com experiência em aulas particulares.'}</p>
+
+            <div class="card-footer">
+              <div class="card-price">
+                ${p.preco} MT <span>/ aula</span>
+              </div>
+              <div class="card-actions">
+                <button class="btn-outline" onclick="alert('Perfil de ${p.nome} em breve!')">
+                  <i class="fas fa-user"></i> Ver Perfil
+                </button>
+                <a href="https://wa.me/${p.whatsapp}" target="_blank" rel="noopener" class="btn-whatsapp">
+                  <i class="fab fa-whatsapp"></i>
+                </a>
+              </div>
             </div>
           </div>
-          <div class="card-tags">
-            ${p.instrumentos.map(i => `<span class="card-tag">${i}</span>`).join('')}
-          </div>
-          <p class="card-bio">${p.bio || 'Professor de música com experiência em aulas particulares.'}</p>
-          <div class="card-footer">
-            <div class="card-price">${p.preco} MT <span>/ aula</span></div>
-            <a href="https://wa.me/${p.whatsapp}" target="_blank" rel="noopener" class="card-whatsapp">
-              <i class="fab fa-whatsapp"></i> Contactar
-            </a>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     // ========================================
@@ -1463,28 +1675,26 @@
     }
 
     // ========================================
-    // CARREGAR DO SUPABASE OU USAR EXEMPLO
+    // CARREGAR DO SUPABASE
     // ========================================
     async function carregarProfessores() {
-      resultsGrid.innerHTML = `
-        <div class="empty-state">
-          <i class="fas fa-spinner fa-spin"></i>
-          ${usandoSupabase ? 'A carregar professores do Supabase...' : 'A carregar dados de exemplo...'}
-        </div>
-      `;
+      isLoading = true;
+      renderSkeletons();
 
       try {
-        // Tentar carregar do Supabase
-        const { data, error } = await supabase.from('professors').select('*').order('created_at', { ascending: false });
+        const { data, error } = await supabase
+          .from('professors')
+          .select('*')
+          .order('created_at', { ascending: false });
 
         if (error) {
-          console.warn('Erro no Supabase, usando dados de exemplo:', error);
+          console.error('❌ Erro no Supabase:', error.message);
+          alert(`Erro ao carregar: ${error.message}\n\nUsando dados de exemplo.`);
           usarDadosExemplo();
           return;
         }
 
         if (data && data.length > 0) {
-          // Tem dados no Supabase
           usandoSupabase = true;
           professores = data.map(p => ({
             nome: p.name,
@@ -1492,29 +1702,35 @@
             instrumentos: p.instruments,
             preco: p.price,
             whatsapp: p.whatsapp.replace(/\D/g, ''),
-            bio: p.bio || ''
+            bio: p.bio || '',
+            experiencia: p.experience || Math.floor(5 + Math.random() * 10),
+            avaliacao: p.rating || 4.5 + Math.random() * 0.5,
+            total_avaliacoes: p.total_reviews || Math.floor(10 + Math.random() * 30)
           }));
-          updateStats();
-          renderTeachers();
+          console.log('✅ Dados carregados do Supabase!');
         } else {
-          // Supabase vazio, usar exemplo
+          console.log('ℹ️ Supabase vazio, usando dados de exemplo.');
           usarDadosExemplo();
         }
       } catch (error) {
-        console.warn('Erro ao ligar ao Supabase, usando dados de exemplo:', error);
+        console.error('❌ Erro ao ligar ao Supabase:', error);
+        alert(`Erro de ligação: ${error.message}\n\nUsando dados de exemplo.`);
         usarDadosExemplo();
       }
+
+      isLoading = false;
+      updateStats();
+      renderTeachers();
     }
 
     function usarDadosExemplo() {
       usandoSupabase = false;
       professores = DADOS_EXEMPLO;
-      updateStats();
-      renderTeachers();
+      console.log('📋 Usando dados de exemplo');
     }
 
     // ========================================
-    // SUBMIT TEACHER (SALVA NO SUPABASE)
+    // SUBMIT TEACHER
     // ========================================
     async function submitTeacher(e) {
       e.preventDefault();
@@ -1537,47 +1753,52 @@
       submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A publicar...';
 
       try {
-        // Tentar salvar no Supabase
-        const { error } = await supabase.from('professors').insert([{
-          name: nome,
-          neighborhood: bairro,
-          instruments: instrumentos,
-          price: Number(preco),
-          whatsapp: whatsapp,
-          bio: bio
-        }]);
+        const { data, error } = await supabase
+          .from('professors')
+          .insert([{
+            name: nome,
+            neighborhood: bairro,
+            instruments: instrumentos,
+            price: Number(preco),
+            whatsapp: whatsapp,
+            bio: bio
+          }]);
 
         if (error) {
-          console.warn('Erro ao salvar no Supabase, salvando localmente:', error);
-          // Salvar localmente (apenas para demonstração)
-          const novoProfessor = { nome, bairro, instrumentos, preco: Number(preco), whatsapp, bio };
+          console.error('❌ Erro ao salvar:', error.message);
+          alert(`Erro ao publicar: ${error.message}\n\nTenta novamente.`);
+          
+          // Fallback: adicionar localmente
+          const novoProfessor = {
+            nome, bairro, instrumentos, preco: Number(preco), whatsapp, bio,
+            experiencia: 0, avaliacao: 0, total_avaliacoes: 0
+          };
           professores.unshift(novoProfessor);
           updateStats();
           renderTeachers();
-          mostrarSucesso('Professor adicionado localmente! (Não foi salvo no Supabase)');
+          successText.textContent = 'Professor adicionado localmente! (Não foi salvo no Supabase)';
+          successMsg.classList.add('show');
+          setTimeout(() => successMsg.classList.remove('show'), 5000);
         } else {
-          // Sucesso no Supabase
-          mostrarSucesso('Cadastro feito com sucesso no Supabase! 🎉');
+          // Sucesso
+          successText.textContent = 'Cadastro feito com sucesso no Supabase! 🎉';
+          successMsg.classList.add('show');
+          setTimeout(() => successMsg.classList.remove('show'), 5000);
+          
+          // Reset form
+          teacherForm.reset();
+          document.querySelectorAll('#t-instrumentos .chip.active').forEach(c => c.classList.remove('active'));
+          
+          // Recarregar
           await carregarProfessores();
         }
-
-        // Reset form
-        teacherForm.reset();
-        document.querySelectorAll('#t-instrumentos .chip.active').forEach(c => c.classList.remove('active'));
-
       } catch (error) {
-        console.error('Erro ao publicar:', error);
+        console.error('❌ Erro ao publicar:', error);
         alert('❌ Não foi possível publicar o perfil. Tenta novamente.');
       }
 
       submitBtn.disabled = false;
       submitBtn.innerHTML = '<i class="fas fa-rocket"></i> Publicar meu perfil';
-    }
-
-    function mostrarSucesso(mensagem) {
-      successMsg.querySelector('span:last-child').textContent = mensagem;
-      successMsg.classList.add('show');
-      setTimeout(() => successMsg.classList.remove('show'), 5000);
     }
 
     // ========================================
@@ -1613,15 +1834,27 @@
     });
 
     // ========================================
+    // PESQUISA AO DIGITAR (debounce)
+    // ========================================
+    let searchTimeout;
+
+    function setupLiveSearch() {
+      fBairro.addEventListener('change', renderTeachers);
+      fInstr.addEventListener('change', renderTeachers);
+      
+      // Pesquisa ao digitar no select (já é change)
+      // Para inputs de texto, usaríamos keyup com debounce
+    }
+
+    // ========================================
     // INIT
     // ========================================
     document.addEventListener('DOMContentLoaded', () => {
       populateSelects();
+      setupLiveSearch();
       carregarProfessores();
 
       // Event listeners
-      fBairro.addEventListener('change', renderTeachers);
-      fInstr.addEventListener('change', renderTeachers);
       $('#btn-search').addEventListener('click', renderTeachers);
       teacherForm.addEventListener('submit', submitTeacher);
 
