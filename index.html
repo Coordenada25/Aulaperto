@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="pt-MZ">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- ========================================
+       SEO BÁSICO
+       ======================================== -->
+  <title>AulaPerto — Encontra o teu professor de música em Maputo</title>
+  <meta name="description" content="Encontre professores de música perto de si em Maputo. Piano, guitarra, bateria, canto e mais. Aulas presenciais e online." />
+  <meta name="keywords" content="professor de música, aulas de guitarra, piano Maputo, bateria, canto, aulas de música" />
+  <link rel="canonical" href="https://aulaperto.com/" />
+  
+  <!-- ========================================
+       OPEN GRAPH (Facebook, WhatsApp)
+       ======================================== -->
+  <meta property="og:title" content="AulaPerto — Encontra o teu professor de música" />
+  <meta property="og:description" content="Conectamos alunos a professores de música em Maputo. Aprende guitarra, piano, bateria e muito mais." />
+  <meta property="og:image" content="https://aulaperto.com/assets/images/og-image.jpg" />
+  <meta property="og:url" content="https://aulaperto.com/" />
+  <meta property="og:type" content="website" />
+  
+  <!-- ========================================
+       TWITTER CARD
+       ======================================== -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="AulaPerto — Encontra o teu professor de música" />
+  <meta name="twitter:description" content="Conectamos alunos a professores de música em Maputo." />
+  
+  <!-- ========================================
+       JSON-LD PARA GOOGLE (Dados Estruturados)
+       ======================================== -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "AulaPerto",
+    "description": "Plataforma para conectar alunos a professores de música em Maputo",
+    "url": "https://aulaperto.com/",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Maputo",
+      "addressCountry": "MZ"
+    }
+  }
+  </script>
+  
+  <!-- ========================================
+       FONTS & ICONS
+       ======================================== -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- ========================================
+       FAVICON
+       ======================================== -->
+  <link rel="icon" href="assets/icons/favicon.ico" type="image/x-icon" />
+  <link rel="shortcut icon" href="assets/icons/favicon.ico" type="image/x-icon" />
+  
+  <!-- ========================================
+       CSS PRINCIPAL
+       ======================================== -->
+  <style>
+    /* ========================================
+       CSS VARIABLES & RESET
+       ======================================== */
+    :root {
+      --cor-primaria: #4A2818;
+      --cor-secundaria: #8B5E3C;
+      --cor-terciaria: #C49A7A;
+      --cor-destaque: #C47A4A;
+      --cor-destaque-claro: #E8A87C;
+      --cor-fundo: #F8F2EB;
+      --cor-card: #FFFFFF;
+      --cor-texto: #2D1B0F;
+      --cor-texto-suave: #6A4E3A;
+      --cor-borda: #E0D3C4;
+      --cor-avaliacao: #F4B942;
+      
+      --sombra-suave: 0 4px 20px rgba(74, 40, 24, 0.08);
+      --sombra-media: 0 8px 32px rgba(74, 40, 24, 0.12);
+      --sombra-forte: 0 12px 48px rgba(74, 40, 24, 0.16);
+      
+      --radius: 16px;
+      --radius-pequeno: 10px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      --max-width: 1120px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--cor-fundo);
+      color: var(--cor-texto);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: 'Fraunces', serif;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    .container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Utilities */
+    .text-center { text-align: center; }
+    .text-gradient {
+      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-destaque));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--cor-fundo);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--cor-secundaria);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--cor-primaria);
+    }
+
+    /* Views */
+    .view {
+      display: none;
+    }
+    .view.active {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ========================================
+       HEADER
+       ======================================== */
+    .header {
+      background: rgba(248, 242, 235, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(224, 211, 196, 0.3);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      padding: 12px 0;
+    }
+
+    .header .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 20px;
+      font-weight: 700;
+      font-family: 'Fraunces', serif;
+      box-shadow: var(--sombra-suave);
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      font-size: 22px;
+      font-weight: 700;
+      font-family: 'Fraunces', serif;
+      color: var(--cor-primaria);
+    }
+
+    .logo-sub {
+      font-size: 12px;
+      color: var(--cor-texto-suave);
+      margin-top: -2px;
+    }
+
+    .nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 999px;
+      background: transparent;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--cor-texto-suave);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .nav-btn:hover {
+      color: var(--cor-texto);
+    }
+
+    .nav-btn.active {
+      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
+      color: white;
+      box-shadow: var(--sombra-suave);
+    }
+
+    .nav-btn i {
+      margin-right: 8px;
+    }
+
+    /* ========================================
+       HERO
+       ======================================== */
+    .hero {
+      padding: 48px 0 32px;
+      position: relative;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(196, 122, 74, 0.12);
+      color: var(--cor-destaque);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 {
+      font-size: clamp(32px, 5vw, 52px);
+      line-height: 1.1;
+      margin-bottom: 16px;
+      max-width: 700px;
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--cor-texto-suave);
+      max-width: 520px;
+      margin-bottom: 32px;
+    }
+
+    /* Stats */
+    .stats {
+      display: flex;
+      gap: 40px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-number {
+      font-family: 'Fraunces', serif;
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--cor-primaria);
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--cor-texto-suave);
+      font-weight: 500;
+    }
+
+    /* Search Panel */
+    .search-panel {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 16px;
+      align-items: end;
+      box-shadow: var(--sombra-media);
+      transition: var(--transition);
+    }
+
+    .search-panel:hover {
+      box-shadow: var(--sombra-forte);
+      transform: translateY(-2px);
+    }
+
+    @media (max-width: 640px) {
+      .search-panel {
+        grid-template-columns: 1fr;
+        padding: 20px;
+      }
+    }
+
+    .field {
+      width: 100%;
+    }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--cor-texto-suave);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .field label i {
+      margin-right: 6px;
+    }
+
+    .field select,
+    .field input,
+    .field textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: var(--radius-pequeno);
+      border: 1px solid var(--cor-borda);
+      background: var(--cor-fundo);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--cor-texto);
+      transition: var(--transition);
+      appearance: none;
+    }
+
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236A4E3A' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+    }
+
+    .field select:focus,
+    .field input:focus,
+    .field textarea:focus {
+      outline: none;
+      border-color: var(--cor-destaque);
+      box-shadow: 0 0 0 4px rgba(196, 122, 74, 0.12);
+      background: white;
+    }
+
+    .btn-primary {
+      padding: 12px 32px;
+      border: none;
+      border-radius: var(--radius-pequeno);
+      background: linear-gradient(135deg, var(--cor-destaque), var(--cor-destaque-claro));
+      color: white;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 4px 16px rgba(196, 122, 74, 0.25);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(196, 122, 74, 0.35);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.97);
+    }
+
+    /* ========================================
+       HOW IT WORKS
+       ======================================== */
+    .how-it-works {
+      padding: 60px 0;
+    }
+
+    .how-it-works h2 {
+      font-size: 32px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .how-it-works > p {
+      text-align: center;
+      color: var(--cor-texto-suave);
+      max-width: 500px;
+      margin: 0 auto 40px;
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 32px;
+    }
+
+    .step {
+      text-align: center;
+      padding: 24px;
+    }
+
+    .step-number {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Fraunces', serif;
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 auto 16px;
+      box-shadow: var(--sombra-suave);
+    }
+
+    .step h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .step p {
+      color: var(--cor-texto-suave);
+      font-size: 14px;
+    }
+
+    /* ========================================
+       TEACHERS GRID
+       ======================================== */
+    .teachers-section {
+      padding: 40px 0 60px;
+    }
+
+    .teachers-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .teachers-header h2 {
+      font-size: 24px;
+    }
+
+    .teachers-count {
+      font-size: 14px;
+      color: var(--cor-texto-suave);
+      background: var(--cor-card);
+      padding: 4px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--cor-borda);
+      font-weight: 600;
+    }
+
+    .teachers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    /* ========================================
+       TEACHER CARD
+       ======================================== */
+    .teacher-card {
+      background: var(--cor-card);
+      border: 1px solid var(--cor-borda);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: var(--transition);
+      box-shadow: var(--sombra-suave);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .teacher-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--sombra-forte);
+      border-color: var(--cor-terciaria);
+    }
+
+    .teacher-card .badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--cor-destaque), var(--cor-destaque-claro));
+      color: white;
+    }
+
+    .card-top {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .card-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .card-name {
+      font-weight: 700;
+      font-size: 17px;
+      margin: 0;
+    }
+
+    .card-location {
+      font-size: 13px;
+      color: var(--cor-texto-suave);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 2px;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .card-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: #F0EAE4;
+      color: var(--cor-secundaria);
+      border: 1px solid var(--cor-borda);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .card-bio {
+      font-size: 14px;
+      color: var(--cor-texto-suave);
+      flex-grow: 1;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid var(--cor-borda);
+    }
+
+    .card-price {
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--cor-primaria);
+    }
+
+    .card-price span {
+      font-weight: 400;
+      font-size: 12px;
+      color: var(--cor-texto-suave);
+    }
+
+    .card-whatsapp {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #25D366;
+      color: white;
+      padding: 10px 18px;
+      border-radius: var(--radius-pequeno);
+      font-weight: 700;
+      font-size: 13px;
+      transition: var(--transition);
+      border: none;
+      cursor: pointer;
+    }
+
+    .card-whatsapp:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 24px rgba(37, 211, 102, 0.3);
+      background: #128C4A;
+    }
+
+    .empty-state {
+      grid-column: 1/-1;
+      text-align: center;
+      padding: 60px 20px;
+      background: var(--cor-card);
+      border: 2px dashed var(--cor-borda);
+      border-radius: var(--radius);
+      color: var(--cor-texto-suave);
+    }
+
+    .empty-state i {
+      font-size: 40px;
+      display: block;
+      margin-bottom: 12px;
+      opacity: 0.3;
+    }
+
+    /* ========================================
+       TESTIMONIALS
+       ======================================== */
+    .testimonials {
+      padding: 60px 0;
+      background: var(--cor-card);
+      border-top: 1px solid var(--cor-borda);
+      border-bottom: 1px solid var(--cor-borda);
+    }
+
+    .testimonials h2 {
+      font-size: 32px;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .testimonials > p {
+      text-align: center;
+      color: var(--cor-texto-suave);
+      margin-bottom: 40px;
+    }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .testimonial {
+      background: var(--cor-fundo);
+      border-radius: var(--radius);
+      padding: 24px;
+      border: 1px solid var(--cor-borda);
+    }
+
+    .testimonial-stars {
+      color: var(--cor-avaliacao);
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .testimonial p {
+      font-size: 15px;
+      font-style: italic;
+      color: var(--cor-texto);
+      margin-bottom: 12px;
+    }
+
+    .testimonial cite {
+      font-style: normal;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--cor-primaria);
+    }
+
+    /* ========================================
+       TEACH FORM
+       ======================================== */
+    .teach-form {
+      max-width: 600px;
+      margin: 40px auto;
+      background: var(--cor-card);
+      border: 1px solid var(--cor-borda);
+      border-radius: var(--radius);
+      padding: 40px;
+      box-shadow: var(--sombra-media);
+    }
+
+    .teach-form h2 {
+      font-size: 26px;
+      margin-bottom: 4px;
+    }
+
+    .teach-form > p {
+      color: var(--cor-texto-suave);
+      margin-bottom: 24px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 520px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      .teach-form {
+        padding: 24px;
+      }
+    }
+
+    .chip-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 2px solid var(--cor-borda);
+      background: var(--cor-fundo);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      color: var(--cor-texto);
+      user-select: none;
+    }
+
+    .chip:hover {
+      border-color: var(--cor-terciaria);
+    }
+
+    .chip.active {
+      background: var(--cor-secundaria);
+      border-color: var(--cor-secundaria);
+      color: white;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: var(--radius-pequeno);
+      background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
+      color: white;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-top: 8px;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--sombra-forte);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .success-message {
+      display: none;
+      background: #EDE6DF;
+      border: 2px solid var(--cor-terciaria);
+      color: var(--cor-primaria);
+      padding: 14px 18px;
+      border-radius: var(--radius-pequeno);
+      margin-bottom: 16px;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .success-message.show {
+      display: flex;
+      animation: fadeSlide 0.3s ease;
+    }
+
+    @keyframes fadeSlide {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ========================================
+       FAQ
+       ======================================== */
+    .faq {
+      padding: 60px 0;
+    }
+
+    .faq h2 {
+      font-size: 32px;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .faq-grid {
+      max-width: 700px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .faq-item {
+      background: var(--cor-card);
+      border: 1px solid var(--cor-borda);
+      border-radius: var(--radius-pequeno);
+      overflow: hidden;
+    }
+
+    .faq-item summary {
+      list-style: none;
+      cursor: pointer;
+    }
+
+    .faq-item summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .faq-question {
+      width: 100%;
+      padding: 16px 20px;
+      background: none;
+      border: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--cor-texto);
+      cursor: pointer;
+      transition: var(--transition);
+      text-align: left;
+    }
+
+    .faq-question:hover {
+      background: var(--cor-fundo);
+    }
+
+    .faq-question i {
+      transition: var(--transition);
+      color: var(--cor-texto-suave);
+    }
+
+    .faq-item[open] .faq-question i {
+      transform: rotate(180deg);
+    }
+
+    .faq-answer {
+      padding: 0 20px 20px;
+    }
+
+    .faq-answer p {
+      color: var(--cor-texto-suave);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    /* ========================================
+       FOOTER
+       ======================================== */
+    .footer {
+      background: var(--cor-primaria);
+      color: var(--cor-terciaria);
+      padding: 40px 0;
+      margin-top: 40px;
+    }
+
+    .footer .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .footer-logo {
+      font-family: 'Fraunces', serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: white;
+    }
+
+    .footer p {
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    .footer-social {
+      display: flex;
+      gap: 16px;
+    }
+
+    .footer-social a {
+      color: var(--cor-terciaria);
+      transition: var(--transition);
+      font-size: 18px;
+    }
+
+    .footer-social a:hover {
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    /* ========================================
+       RESPONSIVE
+       ======================================== */
+    @media (max-width: 768px) {
+      .header .container {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .logo {
+        justify-content: center;
+      }
+      .logo a {
+        justify-content: center;
+      }
+      .nav {
+        justify-content: center;
+      }
+      .stats {
+        justify-content: center;
+        gap: 24px;
+      }
+      .hero {
+        padding: 24px 0;
+      }
+      .hero h1 {
+        font-size: 28px;
+      }
+      .steps-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .footer .container {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .steps-grid {
+        grid-template-columns: 1fr;
+      }
+      .nav-btn {
+        font-size: 12px;
+        padding: 8px 14px;
+      }
+      .search-panel {
+        padding: 16px;
+      }
+      .teachers-grid {
+        grid-template-columns: 1fr;
+      }
+      .testimonials-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  
+  <!-- ========================================
+       SUPABASE
+       ======================================== -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- ========================================
+       HEADER
+       ======================================== -->
+  <header class="header" role="banner">
+    <div class="container">
+      <div class="logo">
+        <a href="/" aria-label="AulaPerto - Página inicial">
+          <div class="logo-icon">♫</div>
+          <div>
+            <span class="logo-text">AulaPerto</span>
+            <span class="logo-sub">🎵 Professores de música perto de ti</span>
+          </div>
+        </a>
+      </div>
+      <nav class="nav" role="navigation" aria-label="Navegação principal">
+        <button class="nav-btn active" data-view="search">
+          <i class="fas fa-search"></i> Encontrar
+        </button>
+        <button class="nav-btn" data-view="teach">
+          <i class="fas fa-chalkboard-teacher"></i> Sou professor
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ========================================
+       MAIN
+       ======================================== -->
+  <main>
+    <!-- VIEW: SEARCH -->
+    <section class="view active" id="view-search" role="main">
+      <div class="container">
+        <!-- Hero -->
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero-badge">
+            <i class="fas fa-map-marker-alt"></i> Maputo &amp; arredores
+          </div>
+          <h1 id="hero-title">
+            O teu próximo professor de música<br>
+            <span class="text-gradient">está no teu bairro</span>
+          </h1>
+          <p>Pesquisa por localização e instrumento — piano, guitarra, bateria, canto e muito mais.</p>
+
+          <!-- Stats -->
+          <div class="stats" aria-label="Estatísticas da plataforma">
+            <div class="stat-item">
+              <span class="stat-number" id="total-teachers">0</span>
+              <span class="stat-label">Professores disponíveis</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number" id="total-instruments">0</span>
+              <span class="stat-label">Instrumentos ensinados</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">⭐ 4.9</span>
+              <span class="stat-label">Avaliação média</span>
+            </div>
+          </div>
+
+          <!-- Search Panel -->
+          <div class="search-panel" role="search">
+            <div class="field">
+              <label for="f-bairro"><i class="fas fa-location-dot"></i> Bairro</label>
+              <select id="f-bairro" aria-label="Filtrar por bairro">
+                <option value="">Todos os bairros</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="f-instr"><i class="fas fa-guitar"></i> Instrumento</label>
+              <select id="f-instr" aria-label="Filtrar por instrumento">
+                <option value="">Todos os instrumentos</option>
+              </select>
+            </div>
+            <button class="btn-primary" id="btn-search">
+              <i class="fas fa-search"></i> Pesquisar
+            </button>
+          </div>
+        </section>
+
+        <!-- How It Works -->
+        <section class="how-it-works" aria-labelledby="how-title">
+          <h2 id="how-title">Como funciona?</h2>
+          <p>Encontra o professor ideal em 3 passos simples</p>
+          <div class="steps-grid">
+            <article class="step">
+              <div class="step-number">1</div>
+              <h3>Pesquisa</h3>
+              <p>Filtra por bairro e instrumento para encontrar professores perto de ti.</p>
+            </article>
+            <article class="step">
+              <div class="step-number">2</div>
+              <h3>Escolhe</h3>
+              <p>Vê os perfis, experiência e preços. Escolhe o que mais combina contigo.</p>
+            </article>
+            <article class="step">
+              <div class="step-number">3</div>
+              <h3>Aprende</h3>
+              <p>Contacta pelo WhatsApp e começa as tuas aulas de música!</p>
+            </article>
+          </div>
+        </section>
+
+        <!-- Teachers Grid -->
+        <section class="teachers-section" aria-labelledby="teachers-title">
+          <div class="teachers-header">
+            <h2 id="teachers-title"><i class="fas fa-users"></i> Professores disponíveis</h2>
+            <span class="teachers-count" id="results-count">0 professores</span>
+          </div>
+          <div class="teachers-grid" id="results-grid">
+            <div class="empty-state">
+              <i class="fas fa-spinner fa-spin"></i>
+              A carregar professores...
+            </div>
+          </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section class="testimonials" aria-labelledby="testimonials-title">
+          <div class="container">
+            <h2 id="testimonials-title">O que os nossos alunos dizem</h2>
+            <p>Histórias reais de quem encontrou o professor certo</p>
+            <div class="testimonials-grid">
+              <article class="testimonial">
+                <div class="testimonial-stars" aria-label="5 estrelas">⭐⭐⭐⭐⭐</div>
+                <p>"Encontrei um professor de guitarra incrível! Em poucas semanas já toco os meus temas favoritos."</p>
+                <cite>— João M., Aluno</cite>
+              </article>
+              <article class="testimonial">
+                <div class="testimonial-stars" aria-label="5 estrelas">⭐⭐⭐⭐⭐</div>
+                <p>"A minha filha adora as aulas de piano. O professor é paciente e torna as aulas muito divertidas."</p>
+                <cite>— Maria S., Mãe</cite>
+              </article>
+              <article class="testimonial">
+                <div class="testimonial-stars" aria-label="5 estrelas">⭐⭐⭐⭐⭐</div>
+                <p>"Finalmente consegui aprender a tocar bateria. O professor adapta-se ao meu ritmo e é muito profissional."</p>
+                <cite>— Carlos R., Aluno</cite>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <!-- FAQ -->
+        <section class="faq" aria-labelledby="faq-title">
+          <h2 id="faq-title">Perguntas frequentes</h2>
+          <div class="faq-grid">
+            <details class="faq-item" open>
+              <summary class="faq-question">
+                Como encontro um professor perto de mim?
+                <i class="fas fa-chevron-down"></i>
+              </summary>
+              <div class="faq-answer">
+                <p>Usa o painel de pesquisa no topo da página. Seleciona o teu bairro ou zona e o instrumento que queres aprender. O sistema vai mostrar todos os professores disponíveis nessa área.</p>
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-question">
+                Quanto custa uma aula?
+                <i class="fas fa-chevron-down"></i>
+              </summary>
+              <div class="faq-answer">
+                <p>O preço varia de professor para professor. Cada professor define o seu próprio valor, que está visível no seu perfil. Os preços começam geralmente a partir de 300 MT por aula.</p>
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-question">
+                Como contacto o professor?
+                <i class="fas fa-chevron-down"></i>
+              </summary>
+              <div class="faq-answer">
+                <p>Em cada perfil de professor tens um botão "Contactar" que te leva diretamente para o WhatsApp do professor. É simples e rápido!</p>
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-question">
+                Como me posso tornar professor?
+                <i class="fas fa-chevron-down"></i>
+              </summary>
+              <div class="faq-answer">
+                <p>Clica em "Sou professor" no menu do topo. Preenche o formulário com os teus dados, instrumentos que ensinas e preço por aula. O teu perfil será publicado imediatamente.</p>
+              </div>
+            </details>
+          </div>
+        </section>
+
+      </div>
+    </section>
+
+    <!-- VIEW: TEACH -->
+    <section class="view" id="view-teach" role="form">
+      <div class="container">
+        <div class="teach-form">
+          <h2><i class="fas fa-music"></i> Cadastra-te como professor</h2>
+          <p>Preenche os teus dados para apareceres nas pesquisas dos alunos.</p>
+
+          <div class="success-message" id="success-msg">
+            <span>✅</span>
+            <span>Cadastro feito com sucesso! Já apareces na lista de professores.</span>
+          </div>
+
+          <form id="teacher-form">
+            <div class="field">
+              <label for="t-nome"><i class="fas fa-user"></i> Nome completo</label>
+              <input id="t-nome" type="text" placeholder="Ex: Carla Muianga" required />
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <label for="t-bairro"><i class="fas fa-location-dot"></i> Bairro / zona</label>
+                <select id="t-bairro" required></select>
+              </div>
+              <div class="field">
+                <label for="t-preco"><i class="fas fa-coins"></i> Preço por aula (MT)</label>
+                <input id="t-preco" type="number" placeholder="Ex: 500" required />
+              </div>
+            </div>
+
+            <div class="field">
+              <label><i class="fas fa-guitar"></i> Instrumentos que ensinas</label>
+              <div class="chip-group" id="t-instrumentos"></div>
+            </div>
+
+            <div class="field">
+              <label for="t-whatsapp"><i class="fab fa-whatsapp"></i> Número de WhatsApp</label>
+              <input id="t-whatsapp" type="text" placeholder="Ex: 84 123 4567" required />
+            </div>
+
+            <div class="field">
+              <label for="t-bio"><i class="fas fa-pencil"></i> Breve descrição</label>
+              <textarea id="t-bio" rows="3" placeholder="Ex: 8 anos de experiência, aulas para iniciantes e avançados." required></textarea>
+            </div>
+
+            <button class="btn-submit" type="submit">
+              <i class="fas fa-rocket"></i> Publicar meu perfil
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ========================================
+       FOOTER
+       ======================================== -->
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div>
+        <div class="footer-logo">♫ AulaPerto</div>
+        <p>Encontra o teu professor de música</p>
+      </div>
+      <p>© 2026 · Feito com <i class="fas fa-heart" style="color: #E8A87C;"></i> para músicos</p>
+      <div class="footer-social">
+        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================
+       JAVASCRIPT
+       ======================================== -->
+  <script>
+    // ========================================
+    // CONFIG
+    // ========================================
+    const BAIRROS = ["Magoanine A", "Magoanine B", "Magoanine C", "Zimpeto", "Costa do Sol", "Sommerschield", "Polana", "Matola-Sede", "Malhazine", "Jardim"];
+    const INSTRUMENTOS = ["Piano", "Guitarra", "Violão", "Bateria", "Canto", "Teclado", "Saxofone", "Violino", "Baixo", "Ukulele"];
+
+    const SUPABASE_URL = "https://zxxwxwtsolbnyzbrabwp.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4eHd4d3Rzb2xibnl6YnJhYndwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMDQ1ODAsImV4cCI6MjEwMTU4MDU4MH0.-IPsAKWwfxVTn2z294RfELvfiSYf7S2x7weNnEoeXJE";
+
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ========================================
+    // STATE
+    // ========================================
+    let professores = [];
+
+    // ========================================
+    // DOM REFS
+    // ========================================
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+
+    const fBairro = $('#f-bairro');
+    const fInstr = $('#f-instr');
+    const tBairro = $('#t-bairro');
+    const tInstrumentos = $('#t-instrumentos');
+    const resultsGrid = $('#results-grid');
+    const resultsCount = $('#results-count');
+    const totalTeachers = $('#total-teachers');
+    const totalInstruments = $('#total-instruments');
+    const teacherForm = $('#teacher-form');
+    const successMsg = $('#success-msg');
+
+    // ========================================
+    // UTILITY
+    // ========================================
+    function initials(name) {
+      return name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+    }
+
+    function getInitialsColor(name) {
+      const colors = ['#8B5E3C', '#C49A7A', '#4A2818', '#A67B5B', '#6A4E3A'];
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      return colors[Math.abs(hash) % colors.length];
+    }
+
+    // ========================================
+    // POPULATE SELECTS & CHIPS
+    // ========================================
+    function populateSelects() {
+      // Bairros
+      BAIRROS.forEach(b => {
+        fBairro.insertAdjacentHTML('beforeend', `<option value="${b}">${b}</option>`);
+        tBairro.insertAdjacentHTML('beforeend', `<option value="${b}">${b}</option>`);
+      });
+
+      // Instrumentos (filtro)
+      INSTRUMENTOS.forEach(i => {
+        fInstr.insertAdjacentHTML('beforeend', `<option value="${i}">${i}</option>`);
+      });
+
+      // Instrumentos (chips)
+      INSTRUMENTOS.forEach(i => {
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.textContent = i;
+        chip.dataset.value = i;
+        chip.addEventListener('click', () => chip.classList.toggle('active'));
+        tInstrumentos.appendChild(chip);
+      });
+    }
+
+    // ========================================
+    // RENDER TEACHERS
+    // ========================================
+    function renderTeachers() {
+      const bairro = fBairro.value;
+      const instr = fInstr.value;
+
+      const filtered = professores.filter(p => {
+        const matchBairro = !bairro || p.bairro === bairro;
+        const matchInstr = !instr || p.instrumentos.includes(instr);
+        return matchBairro && matchInstr;
+      });
+
+      resultsCount.textContent = `${filtered.length} ${filtered.length === 1 ? 'professor encontrado' : 'professores encontrados'}`;
+
+      if (filtered.length === 0) {
+        resultsGrid.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-music"></i>
+            Nenhum professor encontrado para este filtro.<br>
+            <span style="font-size: 13px;">Tenta outro bairro ou instrumento.</span>
+          </div>
+        `;
+        return;
+      }
+
+      resultsGrid.innerHTML = filtered.map((p, i) => `
+        <div class="teacher-card">
+          ${i < 2 ? '<span class="badge"><i class="fas fa-star"></i> Novo</span>' : ''}
+          <div class="card-top">
+            <div class="card-avatar" style="background: ${getInitialsColor(p.nome)}">${initials(p.nome)}</div>
+            <div>
+              <h3 class="card-name">${p.nome}</h3>
+              <div class="card-location"><i class="fas fa-map-pin"></i> ${p.bairro}</div>
+            </div>
+          </div>
+          <div class="card-tags">
+            ${p.instrumentos.map(i => `<span class="card-tag">${i}</span>`).join('')}
+          </div>
+          <p class="card-bio">${p.bio || 'Professor de música com experiência em aulas particulares.'}</p>
+          <div class="card-footer">
+            <div class="card-price">${p.preco} MT <span>/ aula</span></div>
+            <a href="https://wa.me/${p.whatsapp}" target="_blank" rel="noopener" class="card-whatsapp">
+              <i class="fab fa-whatsapp"></i> Contactar
+            </a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ========================================
+    // UPDATE STATS
+    // ========================================
+    function updateStats() {
+      totalTeachers.textContent = professores.length;
+      const allInstruments = new Set();
+      professores.forEach(p => p.instrumentos.forEach(i => allInstruments.add(i)));
+      totalInstruments.textContent = allInstruments.size;
+    }
+
+    // ========================================
+    // LOAD PROFESSORES
+    // ========================================
+    async function loadProfessores() {
+      resultsGrid.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-spinner fa-spin"></i>
+          A carregar professores...
+        </div>
+      `;
+
+      const { data, error } = await supabase.from('professors').select('*').order('created_at', { ascending: false });
+
+      if (error) {
+        resultsGrid.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-exclamation-circle" style="color: #C47A4A;"></i>
+            Não foi possível carregar os professores.<br>
+            <span style="font-size: 13px;">Tenta recarregar a página.</span>
+          </div>
+        `;
+        console.error(error);
+        return;
+      }
+
+      professores = data.map(p => ({
+        nome: p.name,
+        bairro: p.neighborhood,
+        instrumentos: p.instruments,
+        preco: p.price,
+        whatsapp: p.whatsapp.replace(/\D/g, ''),
+        bio: p.bio || ''
+      }));
+
+      updateStats();
+      renderTeachers();
+    }
+
+    // ========================================
+    // SUBMIT TEACHER
+    // ========================================
+    async function submitTeacher(e) {
+      e.preventDefault();
+
+      const nome = $('#t-nome').value.trim();
+      const bairro = tBairro.value;
+      const preco = $('#t-preco').value;
+      const whatsappRaw = $('#t-whatsapp').value.trim();
+      const bio = $('#t-bio').value.trim();
+      const instrumentos = Array.from(document.querySelectorAll('#t-instrumentos .chip.active')).map(c => c.dataset.value);
+
+      if (instrumentos.length === 0) {
+        alert('🎵 Escolhe pelo menos um instrumento.');
+        return;
+      }
+
+      const whatsapp = '258' + whatsappRaw.replace(/\D/g, '').replace(/^258/, '');
+      const submitBtn = document.querySelector('.btn-submit');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A publicar...';
+
+      const { error } = await supabase.from('professors').insert([{
+        name: nome,
+        neighborhood: bairro,
+        instruments: instrumentos,
+        price: Number(preco),
+        whatsapp: whatsapp,
+        bio: bio
+      }]);
+
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-rocket"></i> Publicar meu perfil';
+
+      if (error) {
+        alert('❌ Não foi possível publicar o perfil. Tenta novamente.');
+        console.error(error);
+        return;
+      }
+
+      // Reset form
+      teacherForm.reset();
+      document.querySelectorAll('#t-instrumentos .chip.active').forEach(c => c.classList.remove('active'));
+
+      // Show success
+      successMsg.classList.add('show');
+      setTimeout(() => successMsg.classList.remove('show'), 5000);
+
+      // Reload data
+      await loadProfessores();
+    }
+
+    // ========================================
+    // NAVIGATION
+    // ========================================
+    function switchView(view) {
+      document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+      document.getElementById(`view-${view}`).classList.add('active');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === view);
+      });
+
+      if (view === 'search') {
+        renderTeachers();
+      }
+    }
+
+    // ========================================
+    // FAQ ACCORDION
+    // ========================================
+    document.querySelectorAll('.faq-item').forEach(item => {
+      const summary = item.querySelector('summary');
+      if (summary) {
+        summary.addEventListener('click', (e) => {
+          e.preventDefault();
+          // Fechar outros itens
+          document.querySelectorAll('.faq-item').forEach(other => {
+            if (other !== item) other.removeAttribute('open');
+          });
+          item.toggleAttribute('open');
+        });
+      }
+    });
+
+    // ========================================
+    // INIT
+    // ========================================
+    document.addEventListener('DOMContentLoaded', () => {
+      populateSelects();
+      loadProfessores();
+
+      // Event listeners
+      fBairro.addEventListener('change', renderTeachers);
+      fInstr.addEventListener('change', renderTeachers);
+      $('#btn-search').addEventListener('click', renderTeachers);
+      teacherForm.addEventListener('submit', submitTeacher);
+
+      // Navigation
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchView(btn.dataset.view));
+      });
+    });
+  </script>
+
+</body>
+</html>
