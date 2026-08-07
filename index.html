@@ -1395,7 +1395,7 @@
   </footer>
 
   <!-- ========================================
-       JAVASCRIPT
+       JAVASCRIPT - CORRIGIDO
        ======================================== -->
   <script>
     // ========================================
@@ -1410,7 +1410,8 @@
     const SUPABASE_URL = "https://zxxwxwtsolbnyzbrabwp.supabase.co";
     const SUPABASE_KEY = "sb_publishable_x0Ehx6SckG0JHXqdvOusXw_5LG12KPm";
 
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // Criar cliente Supabase (UMA VEZ)
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // ========================================
     // DADOS DE EXEMPLO (FALLBACK)
@@ -1675,14 +1676,14 @@
     }
 
     // ========================================
-    // CARREGAR DO SUPABASE
+    // CARREGAR DO SUPABASE - CORRIGIDO
     // ========================================
     async function carregarProfessores() {
       isLoading = true;
       renderSkeletons();
 
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
           .from('professors')
           .select('*')
           .order('created_at', { ascending: false });
@@ -1707,7 +1708,7 @@
             avaliacao: p.rating || 4.5 + Math.random() * 0.5,
             total_avaliacoes: p.total_reviews || Math.floor(10 + Math.random() * 30)
           }));
-          console.log('✅ Dados carregados do Supabase!');
+          console.log('✅ Dados carregados do Supabase!', professores.length, 'professores');
         } else {
           console.log('ℹ️ Supabase vazio, usando dados de exemplo.');
           usarDadosExemplo();
@@ -1730,7 +1731,7 @@
     }
 
     // ========================================
-    // SUBMIT TEACHER
+    // SUBMIT TEACHER - CORRIGIDO
     // ========================================
     async function submitTeacher(e) {
       e.preventDefault();
@@ -1753,7 +1754,7 @@
       submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A publicar...';
 
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
           .from('professors')
           .insert([{
             name: nome,
@@ -1834,27 +1835,15 @@
     });
 
     // ========================================
-    // PESQUISA AO DIGITAR (debounce)
-    // ========================================
-    let searchTimeout;
-
-    function setupLiveSearch() {
-      fBairro.addEventListener('change', renderTeachers);
-      fInstr.addEventListener('change', renderTeachers);
-      
-      // Pesquisa ao digitar no select (já é change)
-      // Para inputs de texto, usaríamos keyup com debounce
-    }
-
-    // ========================================
     // INIT
     // ========================================
     document.addEventListener('DOMContentLoaded', () => {
       populateSelects();
-      setupLiveSearch();
       carregarProfessores();
 
       // Event listeners
+      fBairro.addEventListener('change', renderTeachers);
+      fInstr.addEventListener('change', renderTeachers);
       $('#btn-search').addEventListener('click', renderTeachers);
       teacherForm.addEventListener('submit', submitTeacher);
 
