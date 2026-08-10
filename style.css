@@ -493,3 +493,43 @@ img {
   .form-row { grid-template-columns: 1fr; }
   .header .container { flex-direction: column; }
 }
+/* --- MELHORIAS DE SEMANA 1 (Acessibilidade & Validação) --- */
+
+/* Badge para Novos Professores (Sem Prova Social Falsa) */
+.badge-new {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Validação Visual de Campos */
+.input-error {
+  border-color: #dc2626 !important;
+  background-color: #fef2f2 !important;
+}
+
+.error-text {
+  color: #dc2626;
+  font-size: 0.8rem;
+  margin-top: 4px;
+  display: block;
+  font-weight: 500;
+}
+
+/* Melhoria de Contraste para Leitura ao Sol */
+.card-bio {
+  color: #374151 !important; /* Escurecido para melhor legibilidade */
+  line-height: 1.5;
+}
+
+.card-location, .card-experience {
+  color: #4b5563 !important;
+  font-weight: 500;
+}
