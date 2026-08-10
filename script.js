@@ -10,6 +10,9 @@ const INSTRUMENTOS = [
   "Piano", "Guitarra", "Violão", "Bateria", "Canto", "Teclado", "Saxofone", "Violino", "Baixo", "Ukulele"
 ];
 
+const CACHE_KEY = "aulaperto_teachers_cache";
+const CACHE_TTL = 5 * 60 * 1000; // 5 Minutos em milissegundos
+
 // SUPABASE (Chave Pública)
 const SUPABASE_URL = "https://zxxwxwtsolbnyzbrabwp.supabase.co";
 const SUPABASE_KEY = "sb_publishable_x0Ehx6SckG0JHXqdvOusXw_5LG12KPm";
@@ -21,6 +24,7 @@ let professores = [];
 const $ = (s) => document.querySelector(s);
 const fBairro = $('#f-bairro');
 const fInstr = $('#f-instr');
+const fPreco = $('#f-preco');
 const tBairro = $('#t-bairro');
 const tInstrumentos = $('#t-instrumentos');
 const resultsGrid = $('#results-grid');
@@ -32,12 +36,43 @@ const successMsg = $('#success-msg');
 const successText = $('#success-text');
 
 // ==========================================
-// SEGURANÇA & UTILITÁRIOS (XSS + VALIDAÇÃO)
+// TOASTS & UX (FEEDBACKS FLUTUANTES)
 // ==========================================
+function showToast(mensagem, tipo = 'info') {
+  const container = $('#toast-container');
+  if (!container) return;
 
-/**
- * Sanitiza strings para evitar ataques XSS (Cross-Site Scripting)
- */
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${tipo}`;
+  toast.innerHTML = `
+    <span>${escapeHtml(mensagem)}</span>
+    <button style="background:none;border:none;cursor:pointer;color:inherit;font-size:16px;" onclick="this.parentElement.remove()">&times;</button>
+  `;
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(100%)';
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+}
+
+function setButtonLoading(btn, isLoading, originalText) {
+  if (isLoading) {
+    btn.classList.add('btn-loading');
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner"></span> Processando...`;
+  } else {
+    btn.classList.remove('btn-loading');
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+  }
+}
+
+// ==========================================
+// SEGURANÇA & UTILITÁRIOS
+// ==========================================
 function escapeHtml(str) {
   if (str === null || str === undefined) return '';
   return String(str)
@@ -48,23 +83,14 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
-/**
- * Valida número de telemóvel de Moçambique (82, 83, 84, 85, 86, 87 + 7 dígitos)
- */
 function validarTelefoneMZ(numero) {
   const limpo = numero.replace(/\D/g, '');
-  // Aceita formatos: 841234567 ou 258841234567
-  const regex = /^(?:258)?(8[234567]\d{7})$/;
-  return regex.test(limpo);
+  return /^(?:258)?(8[234567]\d{7})$/.test(limpo);
 }
 
-/**
- * Formata o número para o padrão internacional 258XXXXXXXXX
- */
 function formatarTelefoneMZ(numero) {
   const limpo = numero.replace(/\D/g, '');
-  if (limpo.startsWith('258')) return limpo;
-  return '258' + limpo;
+  return limpo.startsWith('258') ? limpo : '258' + limpo;
 }
 
 function initials(name) {
@@ -86,7 +112,6 @@ function renderStars(rating) {
   return stars;
 }
 
-// exibe mensagem de erro abaixo do campo
 function mostrarErroCampo(elementId, mensagem) {
   const el = $(elementId);
   if (!el) return;
@@ -109,7 +134,6 @@ function limparErrosFormulario(form) {
 // ==========================================
 // RENDERIZAÇÃO & UI
 // ==========================================
-
 function renderSkeletons() {
   resultsGrid.innerHTML = Array(3).fill(`
     <div class="skeleton" aria-hidden="true">
@@ -142,17 +166,16 @@ function populateSelects() {
   });
 }
 
-/**
- * Renderiza os cartões de professores de forma segura e sem prova social falsa
- */
 function renderTeachers() {
   const bairro = fBairro.value;
   const instr = fInstr.value;
+  const maxPreco = fPreco ? Number(fPreco.value) : null;
 
   const filtered = professores.filter(p => {
     const matchBairro = !bairro || p.bairro === bairro;
     const matchInstr = !instr || p.instrumentos.includes(instr);
-    return matchBairro && matchInstr;
+    const matchPreco = !maxPreco || p.preco <= maxPreco;
+    return matchBairro && matchInstr && matchPreco;
   });
 
   resultsCount.textContent = `${filtered.length} ${filtered.length === 1 ? 'professor verificado' : 'professores verificados'}`;
@@ -160,8 +183,8 @@ function renderTeachers() {
   if (filtered.length === 0) {
     resultsGrid.innerHTML = `
       <div class="empty-state">
-        <i class="fas fa-music"></i><br>
-        Nenhum professor verificado encontrado para estes filtros.<br>
+        <i class="fas fa-music" style="font-size:32px;margin-bottom:8px;opacity:0.4;"></i><br>
+        Nenhum professor verificado encontrado com estes filtros.<br>
         <button class="btn-clear-filters" onclick="limparFiltros()">Limpar Filtros</button>
       </div>
     `;
@@ -169,8 +192,6 @@ function renderTeachers() {
   }
 
   resultsGrid.innerHTML = filtered.map((p) => {
-    // ELIMINAÇÃO DE PROVA SOCIAL FALSA:
-    // Se não tiver avaliações reais na base de dados, mostra badge de "Novo no AulaPerto"
     const temAvaliacoesReais = p.total_avaliacoes && p.total_avaliacoes > 0 && p.avaliacao;
     const ratingHTML = temAvaliacoesReais 
       ? `<div class="card-rating">${renderStars(p.avaliacao)} ${p.avaliacao.toFixed(1)} <span>(${p.total_avaliacoes})</span></div>`
@@ -183,10 +204,10 @@ function renderTeachers() {
           <div class="card-info">
             <div class="card-name">
               ${escapeHtml(p.nome)}
-              <span class="badge badge-gold" title="Perfil verificado pela administração"><i class="fas fa-check-circle"></i> Aprovado</span>
+              <span class="badge badge-gold"><i class="fas fa-check-circle"></i> Aprovado</span>
             </div>
             ${ratingHTML}
-            <div class="card-experience"><i class="fas fa-briefcase"></i> ${p.experiencia || 1} ${p.experiencia === 1 ? 'ano' : 'anos'} de experiência</div>
+            <div class="card-experience"><i class="fas fa-briefcase"></i> ${p.experiencia || 1} ${p.experiencia === 1 ? 'ano' : 'anos'} de exp.</div>
             <div class="card-location"><i class="fas fa-map-pin"></i> ${escapeHtml(p.bairro)}</div>
           </div>
         </div>
@@ -210,11 +231,12 @@ function renderTeachers() {
 function limparFiltros() {
   fBairro.value = '';
   fInstr.value = '';
+  if (fPreco) fPreco.value = '';
   renderTeachers();
 }
 
 // ==========================================
-// EVENT DELEGATION (EVENTOS SEGUROS NO GRID)
+// EVENT DELEGATION
 // ==========================================
 resultsGrid.addEventListener('click', (e) => {
   const btn = e.target.closest('.btn-pedir-aula');
@@ -226,7 +248,7 @@ resultsGrid.addEventListener('click', (e) => {
 });
 
 // ==========================================
-// MODAL DE CONTATO & SOLICITAÇÕES
+// MODAL DE CONTATO & ACESSIBILIDADE
 // ==========================================
 function abrirModalContacto(nome, instrumentos) {
   $('#modal-teacher-subtitle').textContent = `Solicitar contacto com ${nome}`;
@@ -236,7 +258,9 @@ function abrirModalContacto(nome, instrumentos) {
   lInstr.innerHTML = '<option value="">Selecione o instrumento...</option>' + 
     INSTRUMENTOS.map(i => `<option value="${escapeHtml(i)}">${escapeHtml(i)}</option>`).join('');
 
-  $('#modal-contacto').style.display = 'flex';
+  const modal = $('#modal-contacto');
+  modal.style.display = 'flex';
+  $('#l-nome').focus();
 }
 
 function fecharModal() {
@@ -248,10 +272,23 @@ function fecharModal() {
   }
 }
 
-// SUBMETER LEADS COM VALIDAÇÃO ROBUSTA
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && $('#modal-contacto').style.display === 'flex') {
+    fecharModal();
+  }
+});
+
+$('#modal-contacto').addEventListener('click', (e) => {
+  if (e.target.id === 'modal-contacto') fecharModal();
+});
+
+// SUBMETER SOLICITAÇÃO (LEADS)
 $('#form-lead').addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = e.target;
+  const btnSubmit = form.querySelector('button[type="submit"]');
+  const originalBtnContent = btnSubmit.innerHTML;
+
   limparErrosFormulario(form);
 
   const alunoNome = $('#l-nome').value.trim();
@@ -262,21 +299,23 @@ $('#form-lead').addEventListener('submit', async (e) => {
   let temErro = false;
 
   if (alunoNome.length < 3) {
-    mostrarErroCampo('#l-nome', 'Insira o seu nome completo (mínimo 3 letras).');
+    mostrarErroCampo('#l-nome', 'Insira o seu nome completo.');
     temErro = true;
   }
 
   if (!validarTelefoneMZ(rawWhatsapp)) {
-    mostrarErroCampo('#l-whatsapp', 'Número de WhatsApp inválido. Exemplo: 841234567 ou 821234567.');
+    mostrarErroCampo('#l-whatsapp', 'Número de WhatsApp inválido (ex: 841234567).');
     temErro = true;
   }
 
   if (!instrumento) {
-    mostrarErroCampo('#l-instrumento', 'Selecione o instrumento pretendido.');
+    mostrarErroCampo('#l-instrumento', 'Selecione o instrumento.');
     temErro = true;
   }
 
   if (temErro) return;
+
+  setButtonLoading(btnSubmit, true);
 
   const alunoWhatsapp = formatarTelefoneMZ(rawWhatsapp);
 
@@ -291,25 +330,43 @@ $('#form-lead').addEventListener('submit', async (e) => {
 
     if (error) throw error;
 
-    alert(`Obrigado, ${alunoNome}!\n\nO teu pedido para aulas de ${instrumento} com ${professorNome} foi registado.\n\nA nossa equipa irá validar a solicitação e entrará em contacto via WhatsApp (${alunoWhatsapp}) em breve.`);
     fecharModal();
+    showToast(`Obrigado, ${alunoNome}! Pedido registado. Entraremos em contacto em breve.`, 'success');
 
   } catch (err) {
     console.error('Erro ao guardar solicitação:', err);
-    alert('Ocorreu um erro ao enviar a sua solicitação. Por favor tente novamente.');
+    showToast('Ocorreu um erro ao enviar o pedido. Tenta novamente.', 'error');
+  } finally {
+    setButtonLoading(btnSubmit, false, originalBtnContent);
   }
 });
 
 // ==========================================
-// CONSULTA SUPABASE (OMITE DADOS SENSÍVEIS)
+// CONSULTA SUPABASE + CACHE (LOCALSTORAGE)
 // ==========================================
 async function carregarProfessores() {
   renderSkeletons();
+
+  // 1. Verificar Cache Válida
+  const cachedData = localStorage.getItem(CACHE_KEY);
+  if (cachedData) {
+    try {
+      const { timestamp, data } = JSON.parse(cachedData);
+      if (Date.now() - timestamp < CACHE_TTL) {
+        professores = data;
+        updateStats();
+        renderTeachers();
+        return;
+      }
+    } catch (e) {
+      localStorage.removeItem(CACHE_KEY);
+    }
+  }
+
+  // 2. Consulta API se não houver cache
   try {
     const { data, error } = await supabaseClient
       .from('professors')
-      // SEGURANÇA: Pedimos explicitamente APENAS os campos públicos
-      // O campo 'whatsapp' do professor NÃO é trazido no payload da API!
       .select('id, name, neighborhood, instruments, price, bio, experience, rating, total_reviews')
       .eq('status', 'approved')
       .order('created_at', { ascending: false });
@@ -328,8 +385,15 @@ async function carregarProfessores() {
       total_avaliacoes: p.total_reviews || 0
     }));
 
+    // Guardar na Cache
+    localStorage.setItem(CACHE_KEY, JSON.stringify({
+      timestamp: Date.now(),
+      data: professores
+    }));
+
   } catch (e) {
-    console.error('Erro ao carregar dados do Supabase:', e);
+    console.error('Erro ao carregar dados:', e);
+    showToast('Erro ao carregar lista de professores.', 'error');
     professores = [];
   }
 
@@ -345,10 +409,13 @@ function updateStats() {
 }
 
 // ==========================================
-// CADASTRO DE PROFESSOR (VALIDAÇÃO E REGISTO)
+// CADASTRO DE PROFESSOR
 // ==========================================
 teacherForm.addEventListener('submit', async (e) => {
   e.preventDefault();
+  const btnSubmit = teacherForm.querySelector('button[type="submit"]');
+  const originalBtnContent = btnSubmit.innerHTML;
+
   limparErrosFormulario(teacherForm);
 
   const nome = $('#t-nome').value.trim();
@@ -367,28 +434,28 @@ teacherForm.addEventListener('submit', async (e) => {
   }
 
   if (!bairro) {
-    mostrarErroCampo('#t-bairro', 'Selecione o seu bairro principal.');
+    mostrarErroCampo('#t-bairro', 'Selecione o seu bairro.');
     temErro = true;
   }
 
   if (!preco || Number(preco) <= 0) {
-    mostrarErroCampo('#t-preco', 'Insira um valor válido por hora/aula.');
+    mostrarErroCampo('#t-preco', 'Insira o valor por hora/aula.');
     temErro = true;
   }
 
   if (!validarTelefoneMZ(rawWhatsapp)) {
-    mostrarErroCampo('#t-whatsapp', 'Número de WhatsApp inválido (ex: 84 123 4567).');
+    mostrarErroCampo('#t-whatsapp', 'Número de WhatsApp inválido (ex: 841234567).');
     temErro = true;
   }
 
   if (instrumentos.length === 0) {
-    alert('Por favor, selecione pelo menos um instrumento que leciona.');
+    showToast('Selecione pelo menos um instrumento.', 'error');
     temErro = true;
   }
 
   if (temErro) return;
 
-  const whatsappFormatted = formatarTelefoneMZ(rawWhatsapp);
+  setButtonLoading(btnSubmit, true);
 
   try {
     const { error } = await supabaseClient.from('professors').insert([{
@@ -396,22 +463,28 @@ teacherForm.addEventListener('submit', async (e) => {
       neighborhood: bairro, 
       instruments: instrumentos,
       price: Number(preco), 
-      whatsapp: whatsappFormatted, 
+      whatsapp: formatarTelefoneMZ(rawWhatsapp), 
       bio: bio,
       experience: Number(exp) || 1,
-      status: 'pending' // Fica pendente para validação do Admin
+      status: 'pending'
     }]);
 
     if (error) throw error;
 
-    successText.textContent = 'O seu perfil foi submetido com sucesso! A equipa do AulaPerto irá analisar e aprovar o seu cadastro em breve.';
+    showToast('Perfil submetido! A equipa irá analisar e aprovar em breve.', 'success');
+    successText.textContent = 'O teu perfil foi submetido com sucesso! Irá aparecer na plataforma após validação.';
     successMsg.classList.add('show');
     teacherForm.reset();
     document.querySelectorAll('#t-instrumentos .chip.active').forEach(c => c.classList.remove('active'));
     
+    // Invalida a cache para que o registo atualize após aprovação
+    localStorage.removeItem(CACHE_KEY);
+
   } catch (err) {
     console.error('Erro no cadastro:', err);
-    alert('Ocorreu um erro ao submeter o formulário. Tente novamente.');
+    showToast('Erro ao submeter o formulário.', 'error');
+  } finally {
+    setButtonLoading(btnSubmit, false, originalBtnContent);
   }
 });
 
@@ -438,6 +511,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   fBairro.addEventListener('change', renderTeachers);
   fInstr.addEventListener('change', renderTeachers);
+  if (fPreco) fPreco.addEventListener('change', renderTeachers);
+
   const btnSearch = $('#btn-search');
   if (btnSearch) btnSearch.addEventListener('click', renderTeachers);
 });
