@@ -1,46 +1,31 @@
 <!DOCTYPE html>
 <html lang="pt-MZ">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <!-- SEO -->
-  <title>AulaPerto — Encontra o teu professor de música em Maputo</title>
-  <meta name="description" content="Encontre professores de música perto de si em Maputo. Piano, guitarra, bateria, canto e mais." />
-  <meta name="keywords" content="professor de música, aulas de guitarra, piano Maputo, bateria, canto" />
-  <link rel="canonical" href="https://aulaperto.com/" />
-  
-  <!-- Open Graph -->
-  <meta property="og:title" content="AulaPerto — Encontra o teu professor de música" />
-  <meta property="og:description" content="Conectamos alunos a professores de música em Maputo." />
-  <meta property="og:image" content="https://aulaperto.com/assets/images/og-image.jpg" />
-  <meta property="og:url" content="https://aulaperto.com/" />
-  <meta property="og:type" content="website" />
-  
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="AulaPerto — Encontra o teu professor de música" />
-  <meta name="twitter:description" content="Conectamos alunos a professores de música em Maputo." />
-  
-  <!-- FONTS & ICONS -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AulaPerto — Professores de Música em Maputo</title>
+
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- SUPABASE JS LIBRARY -->
+  <!-- Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- FICHEIRO DE ESTILOS CSS -->
+  
+  <!-- Estilos CSS -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="header" role="banner">
-    <div class="container">
+  <!-- CABEÇALHO & NAVEGAÇÃO -->
+  <header class="header">
+    <div class="container header-container">
       <div class="logo">
-        <a href="#" aria-label="AulaPerto - Página inicial">
+        <a href="#" aria-label="AulaPerto - Página Inicial">
           <div class="logo-icon">♫</div>
           <div>
             <span class="logo-text">AulaPerto</span>
@@ -48,61 +33,70 @@
           </div>
         </a>
       </div>
-      <nav class="nav" role="navigation">
+      <nav class="nav">
         <button class="nav-btn active" data-view="search">
           <i class="fas fa-search"></i> Encontrar
         </button>
         <button class="nav-btn" data-view="teach">
-          <i class="fas fa-chalkboard-teacher"></i> Sou professor
+          <i class="fas fa-chalkboard-teacher"></i> Sou Professor
         </button>
       </nav>
     </div>
   </header>
 
   <main>
-    <!-- VIEW: SEARCH -->
-    <section class="view active" id="view-search">
+    <!-- VIEW: PESQUISA DE PROFESSORES -->
+    <section id="view-search" class="view active">
       <div class="container">
         
         <!-- HERO -->
-        <section class="hero">
+        <div class="hero">
           <div class="hero-content">
             <div class="hero-badge">
-              <i class="fas fa-map-marker-alt"></i> Maputo &amp; arredores
+              <i class="fas fa-map-marker-alt"></i> Maputo &amp; Matola
             </div>
-            <h1>Encontra o teu professor de música<br><span class="text-gradient">no teu bairro</span></h1>
-            <p>Pesquisa por localização e instrumento — piano, guitarra, bateria, canto e muito mais.</p>
-            
+            <h1>Encontra o teu professor de música <span class="text-gradient">no teu bairro</span></h1>
+            <p>Aulas particulares presenciais ao domicílio ou no estúdio do professor.</p>
+
             <div class="stats">
               <div class="stat-item">
-                <span class="stat-number" id="total-teachers">0</span>
-                <span class="stat-label">Professores disponíveis</span>
+                <span id="total-teachers" class="stat-number">0</span>
+                <span class="stat-label">Professores Verificados</span>
               </div>
               <div class="stat-item">
-                <span class="stat-number" id="total-instruments">0</span>
-                <span class="stat-label">Instrumentos ensinados</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-number">⭐ 4.9</span>
-                <span class="stat-label">Avaliação média</span>
+                <span id="total-instruments" class="stat-number">0</span>
+                <span class="stat-label">Instrumentos</span>
               </div>
             </div>
 
-            <!-- SEARCH PANEL -->
-            <div class="search-panel" role="search">
+            <!-- PAINEL DE PESQUISA / FILTROS -->
+            <div class="search-panel">
               <div class="field">
-                <label for="f-bairro"><i class="fas fa-location-dot"></i> Bairro</label>
+                <label for="f-bairro"><i class="fas fa-location-dot"></i> Bairro / Zona</label>
                 <select id="f-bairro">
                   <option value="">Todos os bairros</option>
                 </select>
               </div>
+
               <div class="field">
                 <label for="f-instr"><i class="fas fa-guitar"></i> Instrumento</label>
                 <select id="f-instr">
                   <option value="">Todos os instrumentos</option>
                 </select>
               </div>
-              <button class="btn-primary" id="btn-search">
+
+              <div class="field">
+                <label for="f-preco"><i class="fas fa-coins"></i> Preço Máximo</label>
+                <select id="f-preco">
+                  <option value="">Qualquer valor</option>
+                  <option value="400">Até 400 MT / aula</option>
+                  <option value="600">Até 600 MT / aula</option>
+                  <option value="800">Até 800 MT / aula</option>
+                  <option value="1000">Até 1000 MT / aula</option>
+                </select>
+              </div>
+
+              <button id="btn-search" class="btn-primary">
                 <i class="fas fa-search"></i> Pesquisar
               </button>
             </div>
@@ -110,127 +104,78 @@
           <div class="hero-image">
             <div class="hero-image-placeholder">🎵</div>
           </div>
-        </section>
+        </div>
 
-        <!-- HOW IT WORKS -->
-        <section class="how-it-works">
-          <h2>Como funciona?</h2>
-          <p>Encontra o professor ideal em 3 passos simples</p>
-          <div class="steps-grid">
-            <article class="step">
-              <div class="step-number">1</div>
-              <h3>Pesquisa</h3>
-              <p>Filtra por bairro e instrumento para encontrar professores perto de ti.</p>
-            </article>
-            <article class="step">
-              <div class="step-number">2</div>
-              <h3>Pede o Contacto</h3>
-              <p>Escolhe o perfil e envia uma solicitação direta ao professor.</p>
-            </article>
-            <article class="step">
-              <div class="step-number">3</div>
-              <h3>Aprende</h3>
-              <p>Fala no WhatsApp e começa as tuas aulas de música!</p>
-            </article>
-          </div>
-        </section>
-
-        <!-- TEACHERS GRID -->
-        <section class="teachers-section">
+        <!-- LISTA DE PROFESSORES -->
+        <div class="teachers-section">
           <div class="teachers-header">
-            <h2><i class="fas fa-users"></i> Professores disponíveis</h2>
-            <span class="teachers-count" id="results-count">0 professores</span>
+            <h2><i class="fas fa-users"></i> Professores Aprovados</h2>
+            <span id="results-count" class="teachers-count">0 professores</span>
           </div>
-          <div class="teachers-grid" id="results-grid"></div>
-        </section>
 
-        <!-- TESTIMONIALS -->
-        <section class="testimonials">
-          <div class="container">
-            <h2>O que os nossos alunos dizem</h2>
-            <p>Histórias reais de quem encontrou o professor certo</p>
-            <div class="testimonials-grid">
-              <article class="testimonial">
-                <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-                <p>"Encontrei um professor de guitarra incrível! Em poucas semanas já toco os meus temas favoritos."</p>
-                <cite>— João M., Aluno</cite>
-              </article>
-              <article class="testimonial">
-                <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-                <p>"A minha filha adora as aulas de piano. O professor é paciente e torna as aulas muito divertidas."</p>
-                <cite>— Maria S., Mãe</cite>
-              </article>
-              <article class="testimonial">
-                <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-                <p>"Finalmente consegui aprender a tocar bateria. O professor adapta-se ao meu ritmo."</p>
-                <cite>— Carlos R., Aluno</cite>
-              </article>
-            </div>
+          <div id="results-grid" class="teachers-grid">
+            <!-- Renderizado dinamicamente pelo JS -->
           </div>
-        </section>
-
-        <!-- FAQ -->
-        <section class="faq">
-          <h2>Perguntas frequentes</h2>
-          <div class="faq-grid">
-            <details class="faq-item" open>
-              <summary class="faq-question">Como encontro um professor perto de mim?</summary>
-              <div class="faq-answer">Usa o painel de pesquisa no topo da página. Seleciona o teu bairro e o instrumento.</div>
-            </details>
-            <details class="faq-item">
-              <summary class="faq-question">Quanto custa uma aula?</summary>
-              <div class="faq-answer">Cada professor define o seu preço por aula. Os valores variam geralmente a partir de 300 MT.</div>
-            </details>
-            <details class="faq-item">
-              <summary class="faq-question">Como contacto o professor?</summary>
-              <div class="faq-answer">Clica em "Contactar" no perfil do professor, insere os teus dados e fala diretamente via WhatsApp.</div>
-            </details>
-          </div>
-        </section>
+        </div>
 
       </div>
     </section>
 
-    <!-- VIEW: TEACH -->
-    <section class="view" id="view-teach">
+    <!-- VIEW: REGISTO DE PROFESSOR -->
+    <section id="view-teach" class="view">
       <div class="container">
         <div class="teach-form">
-          <h2><i class="fas fa-music"></i> Cadastra-te como professor</h2>
-          <p>Preenche os teus dados para apareceres nas pesquisas dos alunos.</p>
-          
-          <div class="success-message" id="success-msg">
-            <span id="success-text">Cadastro feito com sucesso!</span>
+          <h2><i class="fas fa-music"></i> Cadastra-te como Professor</h2>
+          <p>Preenche os teus dados para seres avaliado pela nossa equipa e apareceres no site.</p>
+
+          <div id="success-msg" class="success-message">
+            <span id="success-text">Registo efetuado com sucesso!</span>
           </div>
 
           <form id="teacher-form">
             <div class="field">
-              <label for="t-nome"><i class="fas fa-user"></i> Nome completo</label>
-              <input id="t-nome" type="text" placeholder="Ex: Carla Muianga" required />
+              <label for="t-nome"><i class="fas fa-user"></i> Nome Completo *</label>
+              <input type="text" id="t-nome" placeholder="Ex: Carlos Muianga" required>
             </div>
+
             <div class="form-row">
               <div class="field">
-                <label for="t-bairro"><i class="fas fa-location-dot"></i> Bairro / zona</label>
-                <select id="t-bairro" required></select>
+                <label for="t-bairro"><i class="fas fa-location-dot"></i> Bairro / Zona Principal *</label>
+                <select id="t-bairro" required>
+                  <option value="">Selecione o bairro...</option>
+                </select>
               </div>
+
               <div class="field">
-                <label for="t-preco"><i class="fas fa-coins"></i> Preço por aula (MT)</label>
-                <input id="t-preco" type="number" placeholder="Ex: 500" required />
+                <label for="t-preco"><i class="fas fa-coins"></i> Preço por Aula (MT) *</label>
+                <input type="number" id="t-preco" placeholder="Ex: 500" min="100" required>
               </div>
             </div>
-            <div class="field">
-              <label><i class="fas fa-guitar"></i> Instrumentos que ensinas</label>
-              <div class="chip-group" id="t-instrumentos"></div>
+
+            <div class="form-row">
+              <div class="field">
+                <label for="t-whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp (Ex: 84 123 4567) *</label>
+                <input type="tel" id="t-whatsapp" placeholder="84 123 4567" required>
+              </div>
+
+              <div class="field">
+                <label for="t-exp"><i class="fas fa-briefcase"></i> Anos de Experiência</label>
+                <input type="number" id="t-exp" placeholder="Ex: 5" min="1" value="1">
+              </div>
             </div>
+
             <div class="field">
-              <label for="t-whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp (Ex: 84 123 4567)</label>
-              <input id="t-whatsapp" type="tel" pattern="[0-9\s\+]+" placeholder="84 123 4567" required />
+              <label><i class="fas fa-guitar"></i> Instrumentos que Lecionas *</label>
+              <div id="t-instrumentos" class="chip-group"></div>
             </div>
+
             <div class="field">
-              <label for="t-bio"><i class="fas fa-pencil"></i> Breve descrição</label>
-              <textarea id="t-bio" rows="3" placeholder="Ex: Aulas de piano para iniciantes e avançados." required></textarea>
+              <label for="t-bio"><i class="fas fa-pencil"></i> Apresentação / Biografia</label>
+              <textarea id="t-bio" rows="3" placeholder="Descreve a tua experiência e método de ensino..."></textarea>
             </div>
-            <button class="btn-submit" type="submit">
-              <i class="fas fa-rocket"></i> Publicar meu perfil
+
+            <button type="submit" class="btn-submit">
+              <i class="fas fa-rocket"></i> Submeter para Aprovação
             </button>
           </form>
         </div>
@@ -239,56 +184,56 @@
   </main>
 
   <!-- MODAL DE SOLICITAÇÃO DE AULA -->
-  <div id="modal-contacto" class="modal-overlay" style="display:none;">
+  <div id="modal-contacto" class="modal-overlay" style="display: none;">
     <div class="modal-content">
       <button class="modal-close" onclick="fecharModal()">&times;</button>
       <div class="modal-header">
         <h3><i class="fas fa-paper-plane"></i> Pedir Aula</h3>
-        <p id="modal-teacher-subtitle">Envia uma mensagem direta ao professor</p>
+        <p id="modal-teacher-subtitle">Envia uma mensagem para a nossa equipa intermediar</p>
       </div>
+
       <form id="form-lead">
-        <input type="hidden" id="lead-teacher-name" />
-        <input type="hidden" id="lead-teacher-phone" />
-        
+        <input type="hidden" id="lead-teacher-name">
+
         <div class="field">
-          <label for="l-nome">O teu Nome</label>
-          <input type="text" id="l-nome" placeholder="Ex: Mário Tembe" required />
-        </div>
-        
-        <div class="field">
-          <label for="l-whatsapp">O teu WhatsApp</label>
-          <input type="tel" id="l-whatsapp" pattern="[0-9\s\+]+" placeholder="Ex: 84 123 4567" required />
+          <label for="l-nome">O teu Nome Completo *</label>
+          <input type="text" id="l-nome" placeholder="Ex: Mário Tembe" required>
         </div>
 
         <div class="field">
-          <label for="l-instrumento">Instrumento pretendido</label>
-          <select id="l-instrumento" required></select>
+          <label for="l-whatsapp">O teu WhatsApp *</label>
+          <input type="tel" id="l-whatsapp" placeholder="Ex: 84 123 4567" required>
         </div>
 
-        <button type="submit" class="btn-primary" style="width:100%; margin-top:8px;">
-          <i class="fab fa-whatsapp"></i> Falar com Professor no WhatsApp
+        <div class="field">
+          <label for="l-instrumento">Instrumento Pretendido *</label>
+          <select id="l-instrumento" required>
+            <option value="">Selecione...</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 12px;">
+          <i class="fas fa-paper-plane"></i> Confirmar e Enviar Pedido
         </button>
       </form>
     </div>
   </div>
 
-  <!-- FOOTER -->
+  <!-- CONTAINER DE TOASTS FLUTUANTES -->
+  <div id="toast-container"></div>
+
+  <!-- RODAPÉ -->
   <footer class="footer">
-    <div class="container">
+    <div class="container footer-container">
       <div>
         <div class="footer-logo">♫ AulaPerto</div>
-        <p>Encontra o teu professor de música</p>
+        <p>Conectando alunos e professores de música em Maputo.</p>
       </div>
-      <p>© 2026 · Feito com <i class="fas fa-heart" style="color: #38BDF8;"></i> para músicos</p>
-      <div class="footer-social">
-        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
-      </div>
+      <p>© 2026 AulaPerto · Todos os direitos reservados.</p>
     </div>
   </footer>
 
-  <!-- FICHEIRO JAVASCRIPT -->
+  <!-- Script JS -->
   <script src="script.js"></script>
 </body>
 </html>
