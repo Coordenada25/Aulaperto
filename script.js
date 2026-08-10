@@ -7,11 +7,11 @@ const SUPABASE_URL = "https://zxxwxwtsolbnyzbrabwp.supabase.co";
 const SUPABASE_KEY = "sb_publishable_x0Ehx6SckG0JHXqdvOusXw_5LG12KPm";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// MOCK DATA (FALLBACK CASO A BD ESTEJA VAZIA)
+// MOCK DATA (FALLBACK)
 const DADOS_EXEMPLO = [
-  { nome: "Carlos Muianga", bairro: "Polana", instrumentos: ["Guitarra", "Violão"], preco: 500, whatsapp: "258821234567", bio: "Professor de guitarra com 10 anos de experiência.", experiencia: 10, avaliacao: 4.9, total_avaliacoes: 24 },
-  { nome: "Marta Sitoe", bairro: "Sommerschield", instrumentos: ["Piano", "Teclado"], preco: 600, whatsapp: "258823456789", bio: "Pianista profissional. Aulas de piano e teoria musical.", experiencia: 8, avaliacao: 4.8, total_avaliacoes: 18 },
-  { nome: "João Tembe", bairro: "Magoanine A", instrumentos: ["Bateria"], preco: 450, whatsapp: "258825678901", bio: "Baterista com experiência em estúdio e bandas.", experiencia: 8, avaliacao: 4.7, total_avaliacoes: 12 }
+  { id: '1', nome: "Carlos Muianga", bairro: "Polana", instrumentos: ["Guitarra", "Violão"], preco: 500, bio: "Professor de guitarra com 10 anos de experiência.", experiencia: 10, avaliacao: 4.9, total_avaliacoes: 24 },
+  { id: '2', nome: "Marta Sitoe", bairro: "Sommerschield", instrumentos: ["Piano", "Teclado"], preco: 600, bio: "Pianista profissional. Aulas de piano e teoria musical.", experiencia: 8, avaliacao: 4.8, total_avaliacoes: 18 },
+  { id: '3', nome: "João Tembe", bairro: "Magoanine A", instrumentos: ["Bateria"], preco: 450, bio: "Baterista com experiência em estúdio e bandas.", experiencia: 8, avaliacao: 4.7, total_avaliacoes: 12 }
 ];
 
 let professores = [];
@@ -81,7 +81,7 @@ function populateSelects() {
   });
 }
 
-// RENDERIZAR CARTÕES DE PROFESSORES
+// RENDERIZAR CARTÕES DE PROFESSORES (SEM REVELAR O NÚMERO DE WHATSAPP)
 function renderTeachers() {
   const bairro = fBairro.value;
   const instr = fInstr.value;
@@ -91,13 +91,13 @@ function renderTeachers() {
     return matchBairro && matchInstr;
   });
 
-  resultsCount.textContent = `${filtered.length} ${filtered.length === 1 ? 'professor encontrado' : 'professores encontrados'}`;
+  resultsCount.textContent = `${filtered.length} ${filtered.length === 1 ? 'professor verificado' : 'professores verificados'}`;
 
   if (filtered.length === 0) {
     resultsGrid.innerHTML = `
       <div class="empty-state">
         <i class="fas fa-music"></i>
-        Nenhum professor encontrado para este filtro.<br>
+        Nenhum professor verificado para este filtro.<br>
         <button class="btn-clear-filters" onclick="limparFiltros()">Limpar Filtros</button>
       </div>
     `;
@@ -105,7 +105,7 @@ function renderTeachers() {
   }
 
   resultsGrid.innerHTML = filtered.map((p) => {
-    const rating = p.avaliacao || 4.8;
+    const rating = p.avaliacao || 4.9;
     const totalAval = p.total_avaliacoes || 15;
     const exp = p.experiencia || 5;
 
@@ -116,7 +116,7 @@ function renderTeachers() {
           <div class="card-info">
             <div class="card-name">
               ${p.nome}
-              <span class="badge badge-gold"><i class="fas fa-check-circle"></i> Verificado</span>
+              <span class="badge badge-gold"><i class="fas fa-check-circle"></i> Aprovado</span>
             </div>
             <div class="card-rating">${renderStars(rating)} ${rating.toFixed(1)} <span>(${totalAval})</span></div>
             <div class="card-experience"><i class="fas fa-briefcase"></i> ${exp} anos de exp.</div>
@@ -129,8 +129,8 @@ function renderTeachers() {
         <p class="card-bio">${p.bio || 'Professor de música disponível para aulas particulares.'}</p>
         <div class="card-footer">
           <div class="card-price">${p.preco} MT <span>/ aula</span></div>
-          <button class="btn-whatsapp" onclick="abrirModalContacto('${p.nome}', '${p.whatsapp}', '${p.instrumentos.join(', ')}')">
-            <i class="fab fa-whatsapp"></i> Contactar
+          <button class="btn-whatsapp" onclick="abrirModalContacto('${p.nome}', '${p.instrumentos.join(', ')}')">
+            <i class="fas fa-paper-plane"></i> Pedir Aula
           </button>
         </div>
       </div>
@@ -144,11 +144,10 @@ function limparFiltros() {
   renderTeachers();
 }
 
-// MODAL E SOLICITAÇÃO DE CONTATO (LEAD)
-function abrirModalContacto(nome, whatsapp, instrumentos) {
-  $('#modal-teacher-subtitle').textContent = `Solicitar aula com ${nome}`;
+// MODAL DE CONTATO
+function abrirModalContacto(nome, instrumentos) {
+  $('#modal-teacher-subtitle').textContent = `Solicitar contacto com ${nome}`;
   $('#lead-teacher-name').value = nome;
-  $('#lead-teacher-phone').value = whatsapp;
 
   const lInstr = $('#l-instrumento');
   lInstr.innerHTML = '<option value="">Selecione...</option>' + 
@@ -162,7 +161,7 @@ function fecharModal() {
   $('#form-lead').reset();
 }
 
-// SUBMETER SOLICITAÇÃO (SALVA LEAD NO SUPABASE E ABRE WHATSAPP)
+// SUBMETER SOLICITAÇÃO (SALVA LEAD NO SUPABASE - REQUER VALIDAÇÃO)
 $('#form-lead').addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -170,47 +169,46 @@ $('#form-lead').addEventListener('submit', async (e) => {
   const alunoWhatsapp = '258' + $('#l-whatsapp').value.replace(/\D/g, '').replace(/^258/, '');
   const instrumento = $('#l-instrumento').value;
   const professorNome = $('#lead-teacher-name').value;
-  const professorPhone = $('#lead-teacher-phone').value;
 
-  // 1. Salvar Lead no Supabase
   try {
-    await supabaseClient.from('leads').insert([{
+    const { error } = await supabaseClient.from('leads').insert([{
       student_name: alunoNome,
       student_whatsapp: alunoWhatsapp,
       teacher_name: professorNome,
       instrument: instrumento,
       status: 'pending'
     }]);
+
+    if (error) throw error;
+
+    alert(`Obrigado, ${alunoNome}!\n\nO teu pedido para aulas de ${instrumento} com ${professorNome} foi registado com sucesso.\n\nA nossa equipa irá validar a disponibilidade e entrará em contacto contigo pelo WhatsApp (${alunoWhatsapp}) em breve.`);
+    fecharModal();
+
   } catch (err) {
-    console.warn('Erro ao registar lead no Supabase:', err);
+    console.error('Erro ao guardar solicitação:', err);
+    alert('Ocorreu um erro ao enviar o pedido. Por favor tenta novamente.');
   }
-
-  // 2. Abrir WhatsApp com a mensagem pronta
-  const texto = `Olá ${professorNome}! Meu nome é ${alunoNome}. Encontrei o seu perfil no AulaPerto e tenho interesse em aulas de ${instrumento}. Podemos falar?`;
-  const urlWa = `https://wa.me/${professorPhone}?text=${encodeURIComponent(texto)}`;
-
-  fecharModal();
-  window.open(urlWa, '_blank');
 });
 
-// CARREGAR PROFESSORES DO SUPABASE
+// CARREGAR APENAS PROFESSORES APROVADOS (status = 'approved')
 async function carregarProfessores() {
   renderSkeletons();
   try {
     const { data, error } = await supabaseClient
       .from('professors')
       .select('*')
+      .eq('status', 'approved') // FILTRA APENAS OS VALIDADOS PELO ADMIN
       .order('created_at', { ascending: false });
 
     if (error || !data || data.length === 0) {
       professores = DADOS_EXEMPLO;
     } else {
       professores = data.map(p => ({
+        id: p.id,
         nome: p.name,
         bairro: p.neighborhood,
         instrumentos: p.instruments,
         preco: p.price,
-        whatsapp: p.whatsapp.replace(/\D/g, ''),
         bio: p.bio || '',
         experiencia: p.experience || 5,
         avaliacao: p.rating || 4.9,
@@ -231,7 +229,7 @@ function updateStats() {
   totalInstruments.textContent = allInstr.size;
 }
 
-// CADASTRO DE NOVO PROFESSOR
+// CADASTRO DE NOVO PROFESSOR (ENTRA COMO 'pending')
 teacherForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const nome = $('#t-nome').value.trim();
@@ -247,18 +245,26 @@ teacherForm.addEventListener('submit', async (e) => {
   }
 
   try {
-    await supabaseClient.from('professors').insert([{
-      name: nome, neighborhood: bairro, instruments: instrumentos,
-      price: Number(preco), whatsapp: whatsapp, bio: bio
+    const { error } = await supabaseClient.from('professors').insert([{
+      name: nome, 
+      neighborhood: bairro, 
+      instruments: instrumentos,
+      price: Number(preco), 
+      whatsapp: whatsapp, 
+      bio: bio,
+      status: 'pending' // FICA PENDENTE PARA VALIDAÇÃO DO ADMIN
     }]);
 
-    successText.textContent = 'Cadastro feito com sucesso!';
+    if (error) throw error;
+
+    successText.textContent = 'O teu perfil foi submetido com sucesso! A nossa equipa irá analisar e aprovar o teu cadastro em breve.';
     successMsg.classList.add('show');
     teacherForm.reset();
     document.querySelectorAll('#t-instrumentos .chip.active').forEach(c => c.classList.remove('active'));
-    carregarProfessores();
+    
   } catch (err) {
-    alert('Erro ao guardar cadastro.');
+    console.error('Erro no cadastro:', err);
+    alert('Erro ao submeter o registo. Tenta novamente.');
   }
 });
 
