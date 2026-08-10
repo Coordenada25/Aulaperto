@@ -21,23 +21,49 @@ function showToast(mensagem, tipo = 'info') {
   setTimeout(() => toast.remove(), 3500);
 }
 
-async function autenticarAdmin() {
-  const pinInput = $('#admin-pin-input').value.trim();
-  if (!pinInput) return alert('Insere o PIN de administrador.');
-
-  currentPin = pinInput;
-  
-  try {
-    // Testa o PIN tentando carregar os pendentes
-    await carregarPendentes();
-    await carregarLeads();
-    
-    $('#pin-modal').style.display = 'none';
-    showToast('Acesso concedido com sucesso!', 'success');
-  } catch (err) {
-    alert('PIN Incorreto! Acesso negado.');
-    currentPin = '';
+async function carregarLeads() {
+  const { data, error } = await supabaseClient.rpc('get_admin_leads', { admin_pin: currentPin });
+  if (error) {
+    showToast('Erro ao carregar solicitações.', 'error');
+    return;
   }
+
+  const tbody = $('#leads-list');
+  if (!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748B;">Nenhuma solicitação de aula recebida ainda.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map(l => {
+    const dataFormatada = new Date(l.created_at).toLocaleDateString('pt-MZ');
+    
+    // Texto pré-formatado para o Aluno
+    const msgAluno = encodeURIComponent(`Olá ${l.student_name}, recebemos o teu pedido no AulaPerto para aulas de ${l.instrument} com o professor ${l.teacher_name}! Vamos encaminhar o teu contacto.`);
+    
+    // Texto pré-formatado para o Professor
+    const msgProf = encodeURIComponent(`Olá ${l.teacher_name}! Temos um novo aluno do AulaPerto para ti:\n\n👤 Aluno: ${l.student_name}\n🎸 Instrumento: ${l.instrument}\n📱 WhatsApp do Aluno: https://wa.me/${l.student_whatsapp}\n\nPor favor entra em contacto para agendar a aula!`);
+
+    const linkProf = l.teacher_whatsapp 
+      ? `<a href="https://wa.me/${l.teacher_whatsapp}?text=${msgProf}" target="_blank" class="btn-approve" style="text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><i class="fab fa-whatsapp"></i> Encaminhar ao Professor</a>`
+      : `<span style="color:#94A3B8; font-size:12px;">N/A</span>`;
+
+    return `
+      <tr>
+        <td>${dataFormatada}</td>
+        <td><strong>${escapeHtml(l.student_name)}</strong></td>
+        <td>${escapeHtml(l.teacher_name)}</td>
+        <td><span class="card-tag card-tag-instrument">${escapeHtml(l.instrument)}</span></td>
+        <td>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <a href="https://wa.me/${l.student_whatsapp}?text=${msgAluno}" target="_blank" class="btn-wa">
+              <i class="fab fa-whatsapp"></i> Aluno
+            </a>
+            ${linkProf}
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 async function carregarPendentes() {
