@@ -5,11 +5,9 @@ const BAIRROS = [
   "Magoanine A", "Magoanine B", "Magoanine C", "Zimpeto", "Costa do Sol", 
   "Sommerschield", "Polana", "Matola-Sede", "Malhazine", "Jardim", "Alto Maé", "Central"
 ];
-
 const INSTRUMENTOS = [
   "Piano", "Guitarra", "Violão", "Bateria", "Canto", "Teclado", "Saxofone", "Violino", "Baixo", "Ukulele"
 ];
-
 const CACHE_KEY = "aulaperto_teachers_cache";
 const CACHE_TTL = 5 * 60 * 1000; // 5 Minutos em milissegundos
 
@@ -41,16 +39,13 @@ const successText = $('#success-text');
 function showToast(mensagem, tipo = 'info') {
   const container = $('#toast-container');
   if (!container) return;
-
   const toast = document.createElement('div');
   toast.className = `toast toast-${tipo}`;
   toast.innerHTML = `
     <span>${escapeHtml(mensagem)}</span>
     <button style="background:none;border:none;cursor:pointer;color:inherit;font-size:16px;" onclick="this.parentElement.remove()">&times;</button>
   `;
-
   container.appendChild(toast);
-
   setTimeout(() => {
     toast.style.opacity = '0';
     toast.style.transform = 'translateX(100%)';
@@ -127,6 +122,7 @@ function mostrarErroCampo(elementId, mensagem) {
 }
 
 function limparErrosFormulario(form) {
+  if (!form) return;
   form.querySelectorAll('.input-error').forEach(e => e.classList.remove('input-error'));
   form.querySelectorAll('.error-text').forEach(e => e.remove());
 }
@@ -170,7 +166,6 @@ function renderTeachers() {
   const bairro = fBairro.value;
   const instr = fInstr.value;
   const maxPreco = fPreco ? Number(fPreco.value) : null;
-
   const filtered = professores.filter(p => {
     const matchBairro = !bairro || p.bairro === bairro;
     const matchInstr = !instr || p.instrumentos.includes(instr);
@@ -179,7 +174,7 @@ function renderTeachers() {
   });
 
   resultsCount.textContent = `${filtered.length} ${filtered.length === 1 ? 'professor verificado' : 'professores verificados'}`;
-
+  
   if (filtered.length === 0) {
     resultsGrid.innerHTML = `
       <div class="empty-state">
@@ -253,11 +248,10 @@ resultsGrid.addEventListener('click', (e) => {
 function abrirModalContacto(nome, instrumentos) {
   $('#modal-teacher-subtitle').textContent = `Solicitar contacto com ${nome}`;
   $('#lead-teacher-name').value = nome;
-
   const lInstr = $('#l-instrumento');
   lInstr.innerHTML = '<option value="">Selecione o instrumento...</option>' + 
     INSTRUMENTOS.map(i => `<option value="${escapeHtml(i)}">${escapeHtml(i)}</option>`).join('');
-
+  
   const modal = $('#modal-contacto');
   modal.style.display = 'flex';
   $('#l-nome').focus();
@@ -288,7 +282,6 @@ $('#form-lead').addEventListener('submit', async (e) => {
   const form = e.target;
   const btnSubmit = form.querySelector('button[type="submit"]');
   const originalBtnContent = btnSubmit.innerHTML;
-
   limparErrosFormulario(form);
 
   const alunoNome = $('#l-nome').value.trim();
@@ -297,17 +290,14 @@ $('#form-lead').addEventListener('submit', async (e) => {
   const professorNome = $('#lead-teacher-name').value;
 
   let temErro = false;
-
   if (alunoNome.length < 3) {
     mostrarErroCampo('#l-nome', 'Insira o seu nome completo.');
     temErro = true;
   }
-
   if (!validarTelefoneMZ(rawWhatsapp)) {
     mostrarErroCampo('#l-whatsapp', 'Número de WhatsApp inválido (ex: 841234567).');
     temErro = true;
   }
-
   if (!instrumento) {
     mostrarErroCampo('#l-instrumento', 'Selecione o instrumento.');
     temErro = true;
@@ -316,7 +306,6 @@ $('#form-lead').addEventListener('submit', async (e) => {
   if (temErro) return;
 
   setButtonLoading(btnSubmit, true);
-
   const alunoWhatsapp = formatarTelefoneMZ(rawWhatsapp);
 
   try {
@@ -332,7 +321,6 @@ $('#form-lead').addEventListener('submit', async (e) => {
 
     fecharModal();
     showToast(`Obrigado, ${alunoNome}! Pedido registado. Entraremos em contacto em breve.`, 'success');
-
   } catch (err) {
     console.error('Erro ao guardar solicitação:', err);
     showToast('Ocorreu um erro ao enviar o pedido. Tenta novamente.', 'error');
@@ -390,7 +378,6 @@ async function carregarProfessores() {
       timestamp: Date.now(),
       data: professores
     }));
-
   } catch (e) {
     console.error('Erro ao carregar dados:', e);
     showToast('Erro ao carregar lista de professores.', 'error');
@@ -415,7 +402,6 @@ teacherForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const btnSubmit = teacherForm.querySelector('button[type="submit"]');
   const originalBtnContent = btnSubmit.innerHTML;
-
   limparErrosFormulario(teacherForm);
 
   const nome = $('#t-nome').value.trim();
@@ -427,27 +413,22 @@ teacherForm.addEventListener('submit', async (e) => {
   const instrumentos = Array.from(document.querySelectorAll('#t-instrumentos .chip.active')).map(c => c.dataset.value);
 
   let temErro = false;
-
   if (nome.length < 3) {
     mostrarErroCampo('#t-nome', 'Insira o seu nome completo.');
     temErro = true;
   }
-
   if (!bairro) {
     mostrarErroCampo('#t-bairro', 'Selecione o seu bairro.');
     temErro = true;
   }
-
   if (!preco || Number(preco) <= 0) {
     mostrarErroCampo('#t-preco', 'Insira o valor por hora/aula.');
     temErro = true;
   }
-
   if (!validarTelefoneMZ(rawWhatsapp)) {
     mostrarErroCampo('#t-whatsapp', 'Número de WhatsApp inválido (ex: 841234567).');
     temErro = true;
   }
-
   if (instrumentos.length === 0) {
     showToast('Selecione pelo menos um instrumento.', 'error');
     temErro = true;
@@ -477,9 +458,8 @@ teacherForm.addEventListener('submit', async (e) => {
     teacherForm.reset();
     document.querySelectorAll('#t-instrumentos .chip.active').forEach(c => c.classList.remove('active'));
     
-    // Invalida a cache para que o registo atualize após aprovação
+    // Invalida a cache para atualizar quando o professor for futuramente aprovado
     localStorage.removeItem(CACHE_KEY);
-
   } catch (err) {
     console.error('Erro no cadastro:', err);
     showToast('Erro ao submeter o formulário.', 'error');
@@ -508,11 +488,9 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 document.addEventListener('DOMContentLoaded', () => {
   populateSelects();
   carregarProfessores();
-
   fBairro.addEventListener('change', renderTeachers);
   fInstr.addEventListener('change', renderTeachers);
   if (fPreco) fPreco.addEventListener('change', renderTeachers);
-
   const btnSearch = $('#btn-search');
   if (btnSearch) btnSearch.addEventListener('click', renderTeachers);
 });
