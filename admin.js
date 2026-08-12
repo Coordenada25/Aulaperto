@@ -26,16 +26,13 @@ function escapeHtml(str) {
 function showToast(mensagem, tipo = 'info') {
   const container = $('#toast-container');
   if (!container) return;
-
   const toast = document.createElement('div');
   toast.className = `toast toast-${tipo}`;
   toast.innerHTML = `
     <span>${escapeHtml(mensagem)}</span>
     <button style="background:none;border:none;cursor:pointer;color:inherit;font-size:16px;" onclick="this.parentElement.remove()">&times;</button>
   `;
-
   container.appendChild(toast);
-
   setTimeout(() => {
     toast.style.opacity = '0';
     toast.style.transform = 'translateX(100%)';
@@ -43,12 +40,26 @@ function showToast(mensagem, tipo = 'info') {
   }, 3500);
 }
 
+function setButtonLoading(btn, isLoading, originalText) {
+  if (!btn) return;
+  if (isLoading) {
+    btn.classList.add('btn-loading');
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner"></span> A verificar...`;
+  } else {
+    btn.classList.remove('btn-loading');
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+  }
+}
+
 // ==========================================
 // AUTENTICAÇÃO VIA PIN DE SEGURANÇA
 // ==========================================
 async function autenticarAdmin() {
   const pinInput = $('#admin-pin-input');
-  if (!pinInput) return;
+  const btnLogin = $('#btn-admin-login');
+  if (!pinInput || !btnLogin) return;
 
   const pinValue = pinInput.value.trim();
   if (!pinValue) {
@@ -56,6 +67,8 @@ async function autenticarAdmin() {
     return;
   }
 
+  const originalText = btnLogin.innerHTML;
+  setButtonLoading(btnLogin, true, originalText);
   currentPin = pinValue;
   
   try {
@@ -70,6 +83,8 @@ async function autenticarAdmin() {
     console.error("Erro de Autenticação Admin:", err);
     alert('Erro ao entrar: ' + (err.message || 'PIN Incorreto ou sem permissão.'));
     currentPin = '';
+  } finally {
+    setButtonLoading(btnLogin, false, originalText);
   }
 }
 
@@ -176,7 +191,7 @@ async function carregarLeads() {
     
     // Mensagem formatada para o Professor
     const msgProf = encodeURIComponent(`Olá ${l.teacher_name}! Temos um novo aluno do AulaPerto para ti:\n\n👤 Aluno: ${l.student_name}\n🎸 Instrumento: ${l.instrument}\n📱 WhatsApp do Aluno: https://wa.me/${l.student_whatsapp}\n\nPor favor, entra em contacto para agendar a primeira aula!`);
-
+    
     const linkProf = l.teacher_whatsapp 
       ? `<a href="https://wa.me/${l.teacher_whatsapp}?text=${msgProf}" target="_blank" class="btn-approve" style="text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
            <i class="fab fa-whatsapp"></i> Encaminhar ao Professor
