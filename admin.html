@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- CDN do Supabase via unpkg (Mais estável) -->
+  <!-- CDN do Supabase via unpkg -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   
   <link rel="stylesheet" href="style.css">
@@ -28,14 +28,13 @@
   </style>
 </head>
 <body>
-
   <!-- MODAL DE PIN DE SEGURANÇA -->
   <div id="pin-modal" class="pin-modal">
     <div class="pin-box">
       <h3><i class="fas fa-lock"></i> Acesso Restrito</h3>
       <p style="font-size:13px; color:#64748B; margin: 8px 0 16px;">Insere o PIN de Administrador para gerir o AulaPerto.</p>
       <input type="password" id="admin-pin-input" placeholder="PIN de Acesso" style="width:100%; padding:10px; margin-bottom:12px; text-align:center; font-size:18px;">
-      <button class="btn-primary" style="width:100%;" onclick="autenticarAdmin()">Entrar no Painel</button>
+      <button id="btn-admin-login" class="btn-primary" style="width:100%;" onclick="autenticarAdmin()">Entrar no Painel</button>
     </div>
   </div>
 
