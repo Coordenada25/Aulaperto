@@ -110,8 +110,8 @@ async function carregarPendentes() {
       <td>${(p.instruments || []).map(i => `<span class="card-tag card-tag-instrument">${escapeHtml(i)}</span>`).join(' ')}</td>
       <td><strong>${p.price} MT</strong></td>
       <td>
-        <a href="https://wa.me/${p.whatsapp}" target="_blank" class="btn-wa">
-          <i class="fab fa-whatsapp"></i> ${p.whatsapp}
+        <a href="https://wa.me/${escapeHtml(p.whatsapp)}" target="_blank" class="btn-wa">
+          <i class="fab fa-whatsapp"></i> ${escapeHtml(p.whatsapp)}
         </a>
       </td>
       <td>
