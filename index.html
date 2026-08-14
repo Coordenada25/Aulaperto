@@ -124,6 +124,11 @@
             <span id="success-text">Registo efetuado com sucesso!</span>
           </div>
           <form id="teacher-form">
+            <!-- CAMPO HONEYPOT ANTI-SPAM: invisível para humanos, bots costumam preenchê-lo -->
+            <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
+              <label for="t-website">Não preencher este campo</label>
+              <input type="text" id="t-website" name="website" tabindex="-1" autocomplete="off">
+            </div>
             <div class="field">
               <label for="t-nome"><i class="fas fa-user"></i> Nome Completo *</label>
               <input type="text" id="t-nome" placeholder="Ex: Carlos Muianga" required>
@@ -177,6 +182,11 @@
       </div>
       <form id="form-lead">
         <input type="hidden" id="lead-teacher-name">
+        <!-- CAMPO HONEYPOT ANTI-SPAM: invisível para humanos, bots costumam preenchê-lo -->
+        <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
+          <label for="l-website">Não preencher este campo</label>
+          <input type="text" id="l-website" name="website" tabindex="-1" autocomplete="off">
+        </div>
         <div class="field">
           <label for="l-nome">O teu Nome Completo *</label>
           <input type="text" id="l-nome" placeholder="Ex: Mário Tembe" required>
