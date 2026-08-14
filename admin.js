@@ -55,6 +55,12 @@ async function autenticarAdmin() {
         return;
     }
     
+    // PIN fixo para teste
+    if (pinValue !== '1234') {
+        alert('PIN incorreto!');
+        return;
+    }
+    
     const originalText = btnLogin.innerHTML;
     setButtonLoading(btnLogin, true, originalText);
     currentPin = pinValue;
@@ -66,9 +72,8 @@ async function autenticarAdmin() {
         $('#pin-modal').style.display = 'none';
         showToast('Acesso concedido com sucesso!', 'success');
     } catch (err) {
-        console.error('Erro de autenticação:', err);
-        alert('Erro ao entrar: ' + (err.message || 'PIN incorreto.'));
-        currentPin = '';
+        console.error('Erro:', err);
+        alert('Erro ao carregar dados: ' + err.message);
     } finally {
         setButtonLoading(btnLogin, false, originalText);
     }
@@ -90,20 +95,33 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================
 async function carregarEstatisticas() {
     try {
-        const { data, error } = await supabaseClient
-            .from('admin_stats')
-            .select('*')
-            .limit(1);
+        // Total de professores
+        const { count: total } = await supabaseClient
+            .from('professors')
+            .select('*', { count: 'exact', head: true });
         
-        if (error) throw error;
+        // Pendentes
+        const { count: pending } = await supabaseClient
+            .from('professors')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'pending');
         
-        if (data && data.length > 0) {
-            const stats = data[0];
-            $('#stat-total').textContent = stats.total_professors || 0;
-            $('#stat-pending').textContent = stats.pending || 0;
-            $('#stat-approved').textContent = stats.approved || 0;
-            $('#stat-leads').textContent = stats.total_leads || 0;
-        }
+        // Aprovados
+        const { count: approved } = await supabaseClient
+            .from('professors')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'approved');
+        
+        // Leads
+        const { count: leads } = await supabaseClient
+            .from('leads')
+            .select('*', { count: 'exact', head: true });
+        
+        $('#stat-total').textContent = total || 0;
+        $('#stat-pending').textContent = pending || 0;
+        $('#stat-approved').textContent = approved || 0;
+        $('#stat-leads').textContent = leads || 0;
+        
     } catch (err) {
         console.error('Erro nas estatísticas:', err);
     }
@@ -113,58 +131,67 @@ async function carregarEstatisticas() {
 // PROFESSORES PENDENTES
 // ============================================
 async function carregarPendentes() {
-    const { data, error } = await supabaseClient
-        .rpc('get_admin_pending_professors', { admin_pin: currentPin });
-    
-    if (error) throw error;
-    
-    const tbody = $('#pending-list');
-    if (!tbody) return;
-    
-    if (!data || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94A3B8; padding:20px;">Nenhum professor pendente.</td></tr>`;
-        return;
-    }
-    
-    tbody.innerHTML = data.map(p => `
-        <tr>
-            <td>
-                <div style="display:flex; align-items:center; gap:10px;">
-                    ${p.photo_url
-                        ? `<img src="${p.photo_url}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;" />`
-                        : `<div style="width:36px;height:36px;border-radius:50%;background:${getColor(p.name)};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;">${initials(p.name)}</div>`
-                    }
-                    <div>
-                        <strong>${escapeHtml(p.name)}</strong>
-                        <br />
-                        <small style="color:#64748B;">${p.experience || 1} ano(s) exp.</small>
+    try {
+        const { data, error } = await supabaseClient
+            .from('professors')
+            .select('*')
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        const tbody = $('#pending-list');
+        if (!tbody) return;
+        
+        if (!data || data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94A3B8; padding:20px;">Nenhum professor pendente.</td></tr>`;
+            return;
+        }
+        
+        tbody.innerHTML = data.map(p => `
+            <tr>
+                <td>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        ${p.photo_url
+                            ? `<img src="${p.photo_url}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;" />`
+                            : `<div style="width:36px;height:36px;border-radius:50%;background:${getColor(p.name)};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;">${initials(p.name)}</div>`
+                        }
+                        <div>
+                            <strong>${escapeHtml(p.name)}</strong>
+                            <br />
+                            <small style="color:#64748B;">${p.experience || 1} ano(s) exp.</small>
+                        </div>
                     </div>
-                </div>
-            </td>
-            <td>
-                <span class="badge-province" style="background:#DBEAFE;color:#1E40AF;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:600;">${escapeHtml(p.province || 'N/A')}</span>
-                <br />
-                <small>${escapeHtml(p.neighborhood)}</small>
-            </td>
-            <td>${(p.instruments || []).map(i => `<span style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;background:#DBEAFE;color:#1D4ED8;border:1px solid #BFDBFE;display:inline-block;margin:2px;">${escapeHtml(i)}</span>`).join(' ')}</td>
-            <td><strong>${p.price} MT</strong></td>
-            <td>
-                <a href="https://wa.me/${p.whatsapp}" target="_blank" class="btn-wa" style="background:#25D366;color:white;padding:6px 12px;border-radius:6px;font-weight:600;display:inline-flex;align-items:center;gap:4px;text-decoration:none;font-size:13px;">
-                    <i class="fab fa-whatsapp"></i> ${p.whatsapp}
-                </a>
-            </td>
-            <td>
-                <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                    <button class="btn-approve" onclick="aprovarProfessor('${p.id}')" style="background:#10B981;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;transition:all 0.25s;">
-                        <i class="fas fa-check"></i> Aprovar
-                    </button>
-                    <button class="btn-reject" onclick="rejeitarProfessor('${p.id}')" style="background:#EF4444;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;transition:all 0.25s;">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
+                </td>
+                <td>
+                    <span style="background:#DBEAFE;color:#1E40AF;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:600;">${escapeHtml(p.province || 'N/A')}</span>
+                    <br />
+                    <small>${escapeHtml(p.neighborhood)}</small>
+                </td>
+                <td>${(p.instruments || []).map(i => `<span style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;background:#DBEAFE;color:#1D4ED8;border:1px solid #BFDBFE;display:inline-block;margin:2px;">${escapeHtml(i)}</span>`).join(' ')}</td>
+                <td><strong>${p.price} MT</strong></td>
+                <td>
+                    <a href="https://wa.me/${p.whatsapp}" target="_blank" style="background:#25D366;color:white;padding:6px 12px;border-radius:6px;font-weight:600;display:inline-flex;align-items:center;gap:4px;text-decoration:none;font-size:13px;">
+                        <i class="fab fa-whatsapp"></i> ${p.whatsapp}
+                    </a>
+                </td>
+                <td>
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button onclick="aprovarProfessor('${p.id}')" style="background:#10B981;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;">
+                            <i class="fas fa-check"></i> Aprovar
+                        </button>
+                        <button onclick="rejeitarProfessor('${p.id}')" style="background:#EF4444;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+        
+    } catch (err) {
+        console.error('Erro ao carregar pendentes:', err);
+        throw err;
+    }
 }
 
 function getColor(name) {
@@ -188,13 +215,15 @@ function escapeHtml(str) {
 // APROVAR / REJEITAR PROFESSOR
 // ============================================
 async function aprovarProfessor(id) {
-    if (!confirm('Desejas aprovar este professor para publicação?')) return;
+    if (!confirm('Desejas aprovar este professor?')) return;
     try {
-        const { error } = await supabaseClient.rpc('approve_professor', {
-            admin_pin: currentPin,
-            prof_id: id
-        });
+        const { error } = await supabaseClient
+            .from('professors')
+            .update({ status: 'approved' })
+            .eq('id', id);
+        
         if (error) throw error;
+        
         showToast('Professor aprovado com sucesso!', 'success');
         localStorage.removeItem('aulaperto_teachers_cache');
         await carregarPendentes();
@@ -206,13 +235,15 @@ async function aprovarProfessor(id) {
 }
 
 async function rejeitarProfessor(id) {
-    if (!confirm('Tem certeza que deseja rejeitar este cadastro?')) return;
+    if (!confirm('Tem certeza que deseja rejeitar?')) return;
     try {
-        const { error } = await supabaseClient.rpc('reject_professor', {
-            admin_pin: currentPin,
-            prof_id: id
-        });
+        const { error } = await supabaseClient
+            .from('professors')
+            .update({ status: 'rejected' })
+            .eq('id', id);
+        
         if (error) throw error;
+        
         showToast('Cadastro rejeitado.', 'info');
         await carregarPendentes();
         await carregarEstatisticas();
@@ -226,44 +257,45 @@ async function rejeitarProfessor(id) {
 // LEADS (SOLICITAÇÕES)
 // ============================================
 async function carregarLeads() {
-    const { data, error } = await supabaseClient.rpc('get_admin_leads', {
-        admin_pin: currentPin
-    });
-    if (error) throw error;
-    
-    const tbody = $('#leads-list');
-    if (!tbody) return;
-    
-    if (!data || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94A3B8; padding:20px;">Nenhuma solicitação de aula.</td></tr>`;
-        return;
-    }
-    
-    tbody.innerHTML = data.map(l => {
-        const dataFormatada = new Date(l.created_at).toLocaleDateString('pt-MZ');
-        const msgAluno = encodeURIComponent(`Olá ${l.student_name}, recebemos o teu pedido no AulaPerto!`);
-        const msgProf = encodeURIComponent(`Olá ${l.teacher_name}! Temos um novo aluno: ${l.student_name} (${l.instrument}).`);
+    try {
+        const { data, error } = await supabaseClient
+            .from('leads')
+            .select('*')
+            .order('created_at', { ascending: false });
         
-        return `
-            <tr>
-                <td>${dataFormatada}</td>
-                <td><strong>${escapeHtml(l.student_name)}</strong></td>
-                <td>${escapeHtml(l.teacher_name)}</td>
-                <td><span style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;background:#DBEAFE;color:#1D4ED8;border:1px solid #BFDBFE;">${escapeHtml(l.instrument)}</span></td>
-                <td>
-                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                        <a href="https://wa.me/${l.student_whatsapp}?text=${msgAluno}" target="_blank" class="btn-wa" style="background:#25D366;color:white;padding:6px 12px;border-radius:6px;font-weight:600;display:inline-flex;align-items:center;gap:4px;text-decoration:none;font-size:13px;">
-                            <i class="fab fa-whatsapp"></i> Aluno
-                        </a>
-                        ${l.teacher_whatsapp
-                            ? `<a href="https://wa.me/${l.teacher_whatsapp}?text=${msgProf}" target="_blank" class="btn-approve" style="background:#10B981;color:white;padding:6px 12px;border-radius:6px;font-weight:600;display:inline-flex;align-items:center;gap:4px;text-decoration:none;font-size:13px;">
-                                <i class="fab fa-whatsapp"></i> Professor
-                            </a>`
-                            : `<span style="color:#94A3B8; font-size:12px;">Sem WhatsApp</span>`
-                        }
-                    </div>
-                </td>
-            </tr>
-        `;
-    }).join('');
+        if (error) throw error;
+        
+        const tbody = $('#leads-list');
+        if (!tbody) return;
+        
+        if (!data || data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94A3B8; padding:20px;">Nenhuma solicitação de aula.</td></tr>`;
+            return;
+        }
+        
+        tbody.innerHTML = data.map(l => {
+            const dataFormatada = new Date(l.created_at).toLocaleDateString('pt-MZ');
+            const msgAluno = encodeURIComponent(`Olá ${l.student_name}, recebemos o teu pedido no AulaPerto!`);
+            
+            return `
+                <tr>
+                    <td>${dataFormatada}</td>
+                    <td><strong>${escapeHtml(l.student_name)}</strong></td>
+                    <td>${escapeHtml(l.teacher_name || 'N/A')}</td>
+                    <td><span style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;background:#DBEAFE;color:#1D4ED8;border:1px solid #BFDBFE;">${escapeHtml(l.instrument)}</span></td>
+                    <td>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                            <a href="https://wa.me/${l.student_whatsapp}?text=${msgAluno}" target="_blank" style="background:#25D366;color:white;padding:6px 12px;border-radius:6px;font-weight:600;display:inline-flex;align-items:center;gap:4px;text-decoration:none;font-size:13px;">
+                                <i class="fab fa-whatsapp"></i> Aluno
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+    } catch (err) {
+        console.error('Erro ao carregar leads:', err);
+        throw err;
+    }
 }
