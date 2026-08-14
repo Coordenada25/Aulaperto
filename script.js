@@ -284,6 +284,14 @@ $('#form-lead').addEventListener('submit', async (e) => {
   const originalBtnContent = btnSubmit.innerHTML;
   limparErrosFormulario(form);
 
+  // HONEYPOT: bots costumam preencher campos escondidos. Se este
+  // campo vier preenchido, finge sucesso mas não grava nada.
+  if ($('#l-website') && $('#l-website').value.trim() !== '') {
+    fecharModal();
+    showToast('Obrigado! Pedido registado. Entraremos em contacto em breve.', 'success');
+    return;
+  }
+
   const alunoNome = $('#l-nome').value.trim();
   const rawWhatsapp = $('#l-whatsapp').value.trim();
   const instrumento = $('#l-instrumento').value;
@@ -403,6 +411,16 @@ teacherForm.addEventListener('submit', async (e) => {
   const btnSubmit = teacherForm.querySelector('button[type="submit"]');
   const originalBtnContent = btnSubmit.innerHTML;
   limparErrosFormulario(teacherForm);
+
+  // HONEYPOT: bots costumam preencher campos escondidos. Se este
+  // campo vier preenchido, finge sucesso mas não grava nada.
+  if ($('#t-website') && $('#t-website').value.trim() !== '') {
+    showToast('Perfil submetido! A equipa irá analisar e aprovar em breve.', 'success');
+    successText.textContent = 'O teu perfil foi submetido com sucesso! Irá aparecer na plataforma após validação.';
+    successMsg.classList.add('show');
+    teacherForm.reset();
+    return;
+  }
 
   const nome = $('#t-nome').value.trim();
   const bairro = tBairro.value;
