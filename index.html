@@ -1,317 +1,415 @@
 <!DOCTYPE html>
 <html lang="pt-MZ">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AulaPerto — Professores de Música em Moçambique</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AulaPerto - Professores de Música em Moçambique</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- BANNER DE ANÚNCIO (TOPO DO SITE) -->
-  <div class="top-ad-banner">
-    <div class="container">
-      <span>📢 <strong>Espaço para Anúncios:</strong> Promova a sua escola ou loja de instrumentos aqui! <a href="#" onclick="mudarAba('about')">Saiba mais</a></span>
-    </div>
-  </div>
-
-  <header class="header">
+<!-- ============================================ -->
+<!-- HEADER                                       -->
+<!-- ============================================ -->
+<header class="header">
     <div class="container header-container">
-      <div class="logo">
-        <a href="#" aria-label="AulaPerto - Página Inicial">
-          <div class="logo-icon">♫</div>
-          <div>
-            <span class="logo-text">AulaPerto</span>
-            <span class="logo-sub">🎵 Professores em todo Moçambique</span>
-          </div>
-        </a>
-      </div>
-      <nav class="nav">
-        <button class="nav-btn active" data-view="search">
-          <i class="fas fa-search"></i> Encontrar
-        </button>
-        <button class="nav-btn" data-view="teach">
-          <i class="fas fa-chalkboard-teacher"></i> Sou Professor
-        </button>
-        <button class="nav-btn" data-view="about">
-          <i class="fas fa-info-circle"></i> Sobre & Contactos
-        </button>
-      </nav>
-    </div>
-  </header>
-
-  <main>
-    <!-- VIEW: PESQUISA -->
-    <section id="view-search" class="view active">
-      <div class="container">
-        <div class="hero">
-          <div class="hero-content">
-            <div class="hero-badge">
-              <i class="fas fa-map-marked-alt"></i> Todo o País
-            </div>
-            <h1>Encontra o teu professor de música <span class="text-gradient">perto de ti</span></h1>
-            <p>Aulas particulares presenciais ao domicílio ou no estúdio do professor em qualquer província.</p>
-            
-            <div class="stats">
-              <div class="stat-item">
-                <span id="total-teachers" class="stat-number">0</span>
-                <span class="stat-label">Professores Verificados</span>
-              </div>
-              <div class="stat-item">
-                <span id="total-instruments" class="stat-number">0</span>
-                <span class="stat-label">Instrumentos</span>
-              </div>
-            </div>
-
-            <!-- FILTROS COM PROVÍNCIA E BAIRRO -->
-            <div class="search-panel">
-              <div class="field">
-                <label for="f-provincia"><i class="fas fa-map-pin"></i> Província</label>
-                <select id="f-provincia">
-                  <option value="">Todas as províncias</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="f-bairro"><i class="fas fa-location-dot"></i> Bairro / Zona</label>
-                <select id="f-bairro" disabled>
-                  <option value="">Todos os bairros</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="f-instr"><i class="fas fa-guitar"></i> Instrumento</label>
-                <select id="f-instr">
-                  <option value="">Todos os instrumentos</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="f-preco"><i class="fas fa-coins"></i> Preço Máx.</label>
-                <select id="f-preco">
-                  <option value="">Qualquer valor</option>
-                  <option value="400">Até 400 MT / aula</option>
-                  <option value="600">Até 600 MT / aula</option>
-                  <option value="800">Até 800 MT / aula</option>
-                  <option value="1000">Até 1000 MT / aula</option>
-                </select>
-              </div>
-              <button id="btn-search" class="btn-primary">
-                <i class="fas fa-search"></i> Pesquisar
-              </button>
-            </div>
-          </div>
-
-          <!-- ILUSTRAÇÃO DO HERO OTIMIZADA PARA PC -->
-          <div class="hero-image">
-            <div class="hero-card-compact">
-              <div class="compact-icon"><i class="fas fa-music"></i></div>
-              <h3>Aprenda ao teu ritmo</h3>
-              <p>Conectamos alunos aos melhores explicadores de música de Moçambique.</p>
-            </div>
-          </div>
+        <div class="logo">
+            <a href="#" aria-label="AulaPerto - Página Inicial">
+                <div class="logo-icon">♫</div>
+                <div>
+                    <span class="logo-text">AulaPerto</span>
+                    <span class="logo-sub">🎵 Professores de música em Moçambique</span>
+                </div>
+            </a>
         </div>
-
-        <!-- LISTAGEM DE PROFESSORES + SIDEBAR PARA ANÚNCIOS (LAYOUT PC) -->
-        <div class="content-layout">
-          <div class="teachers-section">
-            <div class="teachers-header">
-              <h2><i class="fas fa-users"></i> Professores Aprovados</h2>
-              <span id="results-count" class="teachers-count">0 professores</span>
-            </div>
-            <div id="results-grid" class="teachers-grid">
-              <!-- Renderizado dinamicamente -->
-            </div>
-          </div>
-
-          <!-- BANNER LATERAL DE ANÚNCIOS (PC) -->
-          <aside class="sidebar-ad">
-            <div class="ad-card">
-              <span class="ad-badge">Patrocinado</span>
-              <i class="fas fa-store ad-icon"></i>
-              <h4>Loja de Instrumentos Musical</h4>
-              <p>Precisa de uma guitarra, teclado ou acessórios? Visite os nossos parceiros com descontos para alunos.</p>
-              <a href="#" class="btn-ad">Saber Mais</a>
-            </div>
-          </aside>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW: CADASTRO DO PROFESSOR -->
-    <section id="view-teach" class="view">
-      <div class="container">
-        <div class="teach-form">
-          <h2><i class="fas fa-music"></i> Cadastra-te como Professor</h2>
-          <p>Preenche os teus dados para seres avaliado pela nossa equipa e apareceres no site.</p>
-          <div id="success-msg" class="success-message">
-            <span id="success-text">Registo efetuado com sucesso!</span>
-          </div>
-          <form id="teacher-form">
-            <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
-              <input type="text" id="t-website" name="website" tabindex="-1" autocomplete="off">
-            </div>
-
-            <div class="field">
-              <label for="t-nome"><i class="fas fa-user"></i> Nome Completo *</label>
-              <input type="text" id="t-nome" placeholder="Ex: Carlos Muianga" required>
-            </div>
-
-            <div class="form-row">
-              <div class="field">
-                <label for="t-provincia"><i class="fas fa-map-pin"></i> Província *</label>
-                <select id="t-provincia" required>
-                  <option value="">Selecione a província...</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="t-bairro"><i class="fas fa-location-dot"></i> Bairro / Zona *</label>
-                <input type="text" id="t-bairro" placeholder="Ex: Polana, Malhangalene, etc." required>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="field">
-                <label for="t-preco"><i class="fas fa-coins"></i> Preço por Aula (MT) *</label>
-                <input type="number" id="t-preco" placeholder="Ex: 500" min="100" required>
-              </div>
-              <div class="field">
-                <label for="t-whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp *</label>
-                <input type="tel" id="t-whatsapp" placeholder="84 123 4567" required>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="field">
-                <label for="t-exp"><i class="fas fa-briefcase"></i> Anos de Experiência</label>
-                <input type="number" id="t-exp" placeholder="Ex: 5" min="1" value="1">
-              </div>
-              <div class="field">
-                <label for="t-foto"><i class="fas fa-camera"></i> Foto de Perfil (opcional)</label>
-                <input type="file" id="t-foto" accept="image/jpeg,image/png,image/webp">
-              </div>
-            </div>
-
-            <div class="field">
-              <label><i class="fas fa-guitar"></i> Instrumentos que Lecionas *</label>
-              <div id="t-instrumentos" class="chip-group"></div>
-            </div>
-
-            <div class="field">
-              <label for="t-bio"><i class="fas fa-pencil"></i> Apresentação / Biografia</label>
-              <textarea id="t-bio" rows="3" placeholder="Descreve a tua experiência e método de ensino..."></textarea>
-            </div>
-
-            <button type="submit" class="btn-submit">
-              <i class="fas fa-rocket"></i> Submeter para Aprovação
+        <nav class="nav">
+            <button class="nav-btn active" data-view="search">
+                <i class="fas fa-search"></i> Encontrar
             </button>
-          </form>
+            <button class="nav-btn" data-view="teach">
+                <i class="fas fa-chalkboard-teacher"></i> Sou Professor
+            </button>
+            <button class="nav-btn" data-view="about" id="btn-about">
+                <i class="fas fa-info-circle"></i> Sobre
+            </button>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <!-- ============================================ -->
+    <!-- VIEW: PESQUISA DE PROFESSORES                -->
+    <!-- ============================================ -->
+    <section id="view-search" class="view active">
+        <div class="container">
+            <!-- HERO -->
+            <div class="hero-section">
+                <div class="hero-grid">
+                    <!-- Coluna Esquerda -->
+                    <div class="hero-content">
+                        <div class="hero-badge">
+                            <i class="fas fa-map-marker-alt"></i> 
+                            Moçambique 🇲🇿
+                        </div>
+                        <h1>
+                            Encontra o teu professor de música 
+                            <span class="text-gradient">perto de ti</span>
+                        </h1>
+                        <p>Aulas particulares em todo Moçambique. Conectamos alunos e professores.</p>
+                        
+                        <div class="stats">
+                            <div class="stat-item">
+                                <span id="total-teachers" class="stat-number">0</span>
+                                <span class="stat-label">Professores</span>
+                            </div>
+                            <div class="stat-item">
+                                <span id="total-provinces" class="stat-number">0</span>
+                                <span class="stat-label">Províncias</span>
+                            </div>
+                            <div class="stat-item">
+                                <span id="total-instruments" class="stat-number">0</span>
+                                <span class="stat-label">Instrumentos</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Coluna Direita - Banner -->
+                    <div class="hero-banner">
+                        <div class="banner-principal">
+                            <div class="banner-content">
+                                <span class="banner-tag">🎵 Parcerias</span>
+                                <h3>Anuncie no AulaPerto</h3>
+                                <p>Conecte-se com milhares de alunos</p>
+                                <a href="#contacto" class="btn-banner">Saiba mais</a>
+                            </div>
+                            <div class="banner-image">
+                                <i class="fas fa-guitar"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAINEL DE PESQUISA -->
+            <div class="search-panel">
+                <div class="field">
+                    <label for="f-provincia"><i class="fas fa-map-marker-alt"></i> Província</label>
+                    <select id="f-provincia">
+                        <option value="">Todas as províncias</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="f-bairro"><i class="fas fa-location-dot"></i> Bairro / Zona</label>
+                    <select id="f-bairro">
+                        <option value="">Todos os bairros</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="f-instr"><i class="fas fa-guitar"></i> Instrumento</label>
+                    <select id="f-instr">
+                        <option value="">Todos os instrumentos</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="f-preco"><i class="fas fa-coins"></i> Preço Máximo</label>
+                    <select id="f-preco">
+                        <option value="">Qualquer valor</option>
+                        <option value="400">Até 400 MT</option>
+                        <option value="600">Até 600 MT</option>
+                        <option value="800">Até 800 MT</option>
+                        <option value="1000">Até 1000 MT</option>
+                    </select>
+                </div>
+                <button id="btn-search" class="btn-primary">
+                    <i class="fas fa-search"></i> Pesquisar
+                </button>
+            </div>
+
+            <!-- LISTA DE PROFESSORES -->
+            <div class="teachers-section">
+                <div class="teachers-header">
+                    <h2><i class="fas fa-users"></i> Professores Aprovados</h2>
+                    <span id="results-count" class="teachers-count">0 professores</span>
+                </div>
+                <div id="results-grid" class="teachers-grid">
+                    <!-- Renderizado pelo JS -->
+                </div>
+            </div>
         </div>
-      </div>
     </section>
 
-    <!-- VIEW: SOBRE NÓS & CONTACTOS -->
+    <!-- ============================================ -->
+    <!-- VIEW: CADASTRO DE PROFESSOR                  -->
+    <!-- ============================================ -->
+    <section id="view-teach" class="view">
+        <div class="container">
+            <div class="teach-form">
+                <h2><i class="fas fa-music"></i> Cadastra-te como Professor</h2>
+                <p>Preenche os teus dados para seres avaliado pela nossa equipa e apareceres no site.</p>
+                
+                <div id="success-msg" class="success-message">
+                    <span id="success-text">Registo efetuado com sucesso!</span>
+                </div>
+
+                <form id="teacher-form">
+                    <!-- HONEYPOT -->
+                    <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
+                        <label for="t-website">Não preencher este campo</label>
+                        <input type="text" id="t-website" name="website" tabindex="-1" autocomplete="off" />
+                    </div>
+
+                    <div class="field">
+                        <label for="t-nome"><i class="fas fa-user"></i> Nome Completo *</label>
+                        <input type="text" id="t-nome" placeholder="Ex: Carlos Muianga" required />
+                    </div>
+
+                    <div class="form-row">
+                        <div class="field">
+                            <label for="t-provincia"><i class="fas fa-map-marker-alt"></i> Província *</label>
+                            <select id="t-provincia" required>
+                                <option value="">Selecione a província...</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="t-bairro"><i class="fas fa-location-dot"></i> Bairro / Zona *</label>
+                            <select id="t-bairro" required>
+                                <option value="">Selecione o bairro...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="field" id="novo-bairro-wrapper" style="display:none;">
+                        <label for="t-novo-bairro"><i class="fas fa-plus-circle"></i> Novo Bairro</label>
+                        <input type="text" id="t-novo-bairro" placeholder="Digite o nome do bairro" />
+                    </div>
+
+                    <div class="form-row">
+                        <div class="field">
+                            <label for="t-preco"><i class="fas fa-coins"></i> Preço por Aula (MT) *</label>
+                            <input type="number" id="t-preco" placeholder="Ex: 500" min="100" required />
+                        </div>
+                        <div class="field">
+                            <label for="t-whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp *</label>
+                            <input type="tel" id="t-whatsapp" placeholder="84 123 4567" required />
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="field">
+                            <label for="t-exp"><i class="fas fa-briefcase"></i> Anos de Experiência</label>
+                            <input type="number" id="t-exp" placeholder="Ex: 5" min="1" value="1" />
+                        </div>
+                        <div class="field">
+                            <label for="t-foto"><i class="fas fa-camera"></i> Foto (opcional)</label>
+                            <input type="file" id="t-foto" accept="image/jpeg,image/png,image/webp" />
+                            <small style="color:var(--cor-texto-suave); font-size:11px; display:block; margin-top:4px;">
+                                Máx. 3MB. JPG, PNG ou WEBP.
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label><i class="fas fa-guitar"></i> Instrumentos que Lecionas *</label>
+                        <div id="t-instrumentos" class="chip-group"></div>
+                    </div>
+
+                    <div class="field">
+                        <label for="t-bio"><i class="fas fa-pencil"></i> Apresentação / Biografia</label>
+                        <textarea id="t-bio" rows="3" placeholder="Descreve a tua experiência e método de ensino..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-rocket"></i> Submeter para Aprovação
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- VIEW: SOBRE NÓS                             -->
+    <!-- ============================================ -->
     <section id="view-about" class="view">
-      <div class="container">
-        <div class="about-container">
-          <div class="about-header">
-            <h2>Sobre o <span class="text-gradient">AulaPerto</span></h2>
-            <p>A plataforma moçambicana dedicada a conectar estudantes a explicadores e professores de música qualificados em todas as províncias.</p>
-          </div>
-
-          <div class="about-grid">
-            <div class="about-card">
-              <div class="about-icon"><i class="fas fa-bullseye"></i></div>
-              <h3>A Nossa Missão</h3>
-              <p>Tornar o ensino de música acessível a qualquer pessoa em Moçambique, valorizando os músicos locais e facilitando o agendamento de aulas presenciais ou ao domicílio.</p>
-            </div>
-
-            <div class="about-card">
-              <div class="about-icon"><i class="fas fa-handshake"></i></div>
-              <h3>Parcerias & Anúncios</h3>
-              <p>Tem uma escola de música, loja de instrumentos ou marca relacionada? Promova o seu negócio junto do nosso público-alvo de estudantes e professores.</p>
-            </div>
-          </div>
-
-          <div class="contact-box">
-            <h3><i class="fas fa-envelope"></i> Entra em Contacto</h3>
-            <p>Para dúvidas, suporte, sugestões ou propostas de parceria comercial:</p>
-            
-            <div class="contact-methods">
-              <a href="https://wa.me/258840000000" target="_blank" class="contact-item">
-                <i class="fab fa-whatsapp"></i>
-                <div>
-                  <strong>WhatsApp Oficial</strong>
-                  <span>+258 84 000 0000</span>
+        <div class="container">
+            <div class="about-page">
+                <div class="about-header">
+                    <span class="about-icon">♫</span>
+                    <h1>Sobre o AulaPerto</h1>
+                    <p>Conectando alunos e professores de música em Moçambique</p>
                 </div>
-              </a>
 
-              <a href="mailto:contacto@aulaperto.co.mz" class="contact-item">
-                <i class="fas fa-at"></i>
-                <div>
-                  <strong>Email</strong>
-                  <span>contacto@aulaperto.co.mz</span>
+                <div class="about-grid">
+                    <div class="about-card">
+                        <i class="fas fa-bullseye"></i>
+                        <h3>Nossa Missão</h3>
+                        <p>Democratizar o acesso ao ensino musical em Moçambique, conectando alunos a professores qualificados em todo o país.</p>
+                    </div>
+                    <div class="about-card">
+                        <i class="fas fa-handshake"></i>
+                        <h3>Como Funciona</h3>
+                        <ol>
+                            <li>Professor <strong>cadastra-se</strong> gratuitamente</li>
+                            <li>Equipa <strong>verifica</strong> o perfil</li>
+                            <li>Alunos <strong>encontram</strong> professores</li>
+                            <li>Agendam aulas <strong>diretamente</strong> via WhatsApp</li>
+                        </ol>
+                    </div>
+                    <div class="about-card">
+                        <i class="fas fa-heart"></i>
+                        <h3>Nossos Valores</h3>
+                        <ul>
+                            <li>Qualidade no ensino</li>
+                            <li>Transparência nas relações</li>
+                            <li>Acessibilidade para todos</li>
+                            <li>Valorização dos professores</li>
+                        </ul>
+                    </div>
                 </div>
-              </a>
+
+                <div class="about-stats-box">
+                    <h3>Impacto</h3>
+                    <div class="about-stats-grid">
+                        <div class="about-stat">
+                            <span class="about-stat-number" id="about-teachers">0</span>
+                            <span>Professores</span>
+                        </div>
+                        <div class="about-stat">
+                            <span class="about-stat-number" id="about-provinces">0</span>
+                            <span>Províncias</span>
+                        </div>
+                        <div class="about-stat">
+                            <span class="about-stat-number" id="about-instruments">0</span>
+                            <span>Instrumentos</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="about-contact">
+                    <h3>Parcerias e Contactos</h3>
+                    <div class="about-contact-grid">
+                        <a href="mailto:parcerias@aulaperto.co.mz" class="about-contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>parcerias@aulaperto.co.mz</span>
+                        </a>
+                        <a href="https://wa.me/258840000000" class="about-contact-item">
+                            <i class="fab fa-whatsapp"></i>
+                            <span>84 000 0000</span>
+                        </a>
+                        <a href="tel:+258840000000" class="about-contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span>+258 84 000 0000</span>
+                        </a>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
     </section>
-  </main>
+</main>
 
-  <!-- MODAL DE PEDIR AULA -->
-  <div id="modal-contacto" class="modal-overlay" style="display: none;">
+<!-- ============================================ -->
+<!-- MODAL DE SOLICITAÇÃO DE AULA                 -->
+<!-- ============================================ -->
+<div id="modal-contacto" class="modal-overlay" style="display: none;">
     <div class="modal-content">
-      <button class="modal-close" onclick="fecharModal()">&times;</button>
-      <div class="modal-header">
-        <h3><i class="fas fa-paper-plane"></i> Pedir Aula</h3>
-        <p id="modal-teacher-subtitle">Envia uma mensagem para a nossa equipa intermediar</p>
-      </div>
-      <form id="form-lead">
-        <input type="hidden" id="lead-teacher-name">
-        <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
-          <input type="text" id="l-website" name="website" tabindex="-1" autocomplete="off">
+        <button class="modal-close" onclick="fecharModal()">&times;</button>
+        <div class="modal-header">
+            <h3><i class="fas fa-paper-plane"></i> Pedir Aula</h3>
+            <p id="modal-teacher-subtitle">Envia uma mensagem para a nossa equipa intermediar</p>
         </div>
-        <div class="field">
-          <label for="l-nome">O teu Nome Completo *</label>
-          <input type="text" id="l-nome" placeholder="Ex: Mário Tembe" required>
-        </div>
-        <div class="field">
-          <label for="l-whatsapp">O teu WhatsApp *</label>
-          <input type="tel" id="l-whatsapp" placeholder="Ex: 84 123 4567" required>
-        </div>
-        <div class="field">
-          <label for="l-instrumento">Instrumento Pretendido *</label>
-          <select id="l-instrumento" required>
-            <option value="">Selecione...</option>
-          </select>
-        </div>
-        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 12px;">
-          <i class="fas fa-paper-plane"></i> Confirmar e Enviar Pedido
-        </button>
-      </form>
+        <form id="form-lead">
+            <input type="hidden" id="lead-teacher-name" />
+            
+            <!-- HONEYPOT -->
+            <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
+                <label for="l-website">Não preencher este campo</label>
+                <input type="text" id="l-website" name="website" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <div class="field">
+                <label for="l-nome">O teu Nome Completo *</label>
+                <input type="text" id="l-nome" placeholder="Ex: Mário Tembe" required />
+            </div>
+            <div class="field">
+                <label for="l-whatsapp">O teu WhatsApp *</label>
+                <input type="tel" id="l-whatsapp" placeholder="Ex: 84 123 4567" required />
+            </div>
+            <div class="field">
+                <label for="l-instrumento">Instrumento Pretendido *</label>
+                <select id="l-instrumento" required>
+                    <option value="">Selecione...</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 12px;">
+                <i class="fas fa-paper-plane"></i> Confirmar e Enviar Pedido
+            </button>
+        </form>
     </div>
-  </div>
+</div>
 
-  <div id="toast-container"></div>
+<!-- ============================================ -->
+<!-- TOASTS                                      -->
+<!-- ============================================ -->
+<div id="toast-container"></div>
 
-  <footer class="footer">
-    <div class="container footer-container">
-      <div>
-        <div class="footer-logo">♫ AulaPerto</div>
-        <p>A conectar alunos e professores de música em todo Moçambique.</p>
-      </div>
-      <div>
-        <span>© 2026 AulaPerto · Todos os direitos reservados.</span>
-      </div>
+<!-- ============================================ -->
+<!-- FOOTER                                      -->
+<!-- ============================================ -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div>
+                <div class="footer-logo">♫ AulaPerto</div>
+                <p>Conectando alunos e professores de música em Moçambique.</p>
+            </div>
+            <div>
+                <h4>Links</h4>
+                <ul class="footer-links">
+                    <li><a href="#" data-view="search">Encontrar Professor</a></li>
+                    <li><a href="#" data-view="teach">Sou Professor</a></li>
+                    <li><a href="#" data-view="about">Sobre nós</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Contactos</h4>
+                <ul class="footer-contacts">
+                    <li>
+                        <i class="fab fa-whatsapp"></i>
+                        <a href="https://wa.me/258840000000">84 000 0000</a>
+                    </li>
+                    <li>
+                        <i class="fas fa-envelope"></i>
+                        <a href="mailto:parcerias@aulaperto.co.mz">parcerias@aulaperto.co.mz</a>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <h4>Redes Sociais</h4>
+                <div class="social-links">
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2026 AulaPerto · Todos os direitos reservados.</span>
+            <span>Feito com ♥ em Moçambique</span>
+        </div>
     </div>
-  </footer>
+</footer>
 
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
