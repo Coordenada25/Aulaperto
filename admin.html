@@ -1,107 +1,152 @@
 <!DOCTYPE html>
 <html lang="pt-MZ">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AulaPerto — Painel do Administrador</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- CDN do Supabase via unpkg -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  
-  <link rel="stylesheet" href="style.css">
-  <style>
-    .admin-container { padding: 30px 0; }
-    .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-    .admin-card { background: white; border: 1px solid var(--cor-borda); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
-    .admin-table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; }
-    .admin-table th, .admin-table td { padding: 12px; border-bottom: 1px solid var(--cor-borda); }
-    .admin-table th { background: var(--cor-fundo); font-weight: 600; }
-    .btn-approve { background: #10B981; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; }
-    .btn-reject { background: #EF4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; }
-    .btn-wa { background: #25D366; color: white; padding: 6px 12px; border-radius: 6px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }
-    .pin-modal { background: rgba(15,23,42,0.8); position: fixed; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; z-index:9999; }
-    .pin-box { background: white; padding: 30px; border-radius: var(--radius); text-align: center; max-width: 320px; width: 90%; }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AulaPerto - Painel do Administrador</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="style.css" />
+    
+    <style>
+        .admin-container { padding: 30px 0; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .admin-card { background: white; border: 1px solid var(--cor-borda); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
+        .admin-table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; }
+        .admin-table th, .admin-table td { padding: 12px; border-bottom: 1px solid var(--cor-borda); }
+        .admin-table th { background: var(--cor-fundo); font-weight: 600; }
+        .admin-table tr:hover { background: #F8FAFC; }
+        
+        .btn-approve { background: #10B981; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: var(--transition); }
+        .btn-approve:hover { background: #059669; }
+        .btn-reject { background: #EF4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: var(--transition); }
+        .btn-reject:hover { background: #DC2626; }
+        .btn-wa { background: #25D366; color: white; padding: 6px 12px; border-radius: 6px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; font-size: 13px; }
+        .btn-wa:hover { background: #1DA851; }
+        
+        .pin-modal { background: rgba(15,23,42,0.8); position: fixed; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; z-index:9999; }
+        .pin-box { background: white; padding: 30px; border-radius: var(--radius); text-align: center; max-width: 340px; width: 90%; box-shadow: var(--sombra-forte); }
+        .pin-box h3 { font-family: 'Inter', sans-serif; margin-bottom: 4px; }
+        .pin-box input { width:100%; padding:12px; margin-bottom:12px; text-align:center; font-size:18px; border: 2px solid var(--cor-borda); border-radius: var(--radius-pequeno); font-family: 'Inter', sans-serif; transition: var(--transition); }
+        .pin-box input:focus { outline: none; border-color: var(--cor-primaria); box-shadow: 0 0 0 4px rgba(37,99,235,0.12); }
+        
+        .badge-province { background: #DBEAFE; color: #1E40AF; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+        .badge-status { padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+        .badge-status.pending { background: #FEF3C7; color: #92400E; }
+        .badge-status.approved { background: #D1FAE5; color: #065F46; }
+        
+        @media (max-width: 768px) {
+            .admin-table { font-size: 12px; }
+            .admin-table th, .admin-table td { padding: 8px; }
+            .admin-card { padding: 12px; }
+        }
+    </style>
 </head>
 <body>
-  <!-- MODAL DE PIN DE SEGURANÇA -->
-  <div id="pin-modal" class="pin-modal">
+
+<!-- MODAL DE PIN -->
+<div id="pin-modal" class="pin-modal">
     <div class="pin-box">
-      <h3><i class="fas fa-lock"></i> Acesso Restrito</h3>
-      <p style="font-size:13px; color:#64748B; margin: 8px 0 16px;">Insere o PIN de Administrador para gerir o AulaPerto.</p>
-      <input type="password" id="admin-pin-input" placeholder="PIN de Acesso" style="width:100%; padding:10px; margin-bottom:12px; text-align:center; font-size:18px;">
-      <button id="btn-admin-login" class="btn-primary" style="width:100%;" onclick="autenticarAdmin()">Entrar no Painel</button>
+        <h3><i class="fas fa-lock" style="color: var(--cor-primaria);"></i> Acesso Restrito</h3>
+        <p style="font-size:13px; color:#64748B; margin: 8px 0 16px;">Insere o PIN de Administrador para gerir o AulaPerto.</p>
+        <input type="password" id="admin-pin-input" placeholder="PIN de Acesso" />
+        <button id="btn-admin-login" class="btn-primary" style="width:100%;" onclick="autenticarAdmin()">
+            <i class="fas fa-sign-in-alt"></i> Entrar no Painel
+        </button>
     </div>
-  </div>
+</div>
 
-  <header class="header">
+<!-- HEADER -->
+<header class="header">
     <div class="container header-container">
-      <div class="logo">
-        <a href="index.html">
-          <div class="logo-icon">♫</div>
-          <div><span class="logo-text">AulaPerto</span> <span class="logo-sub">Painel Admin</span></div>
+        <div class="logo">
+            <a href="index.html">
+                <div class="logo-icon">♫</div>
+                <div>
+                    <span class="logo-text">AulaPerto</span>
+                    <span class="logo-sub">Painel Admin</span>
+                </div>
+            </a>
+        </div>
+        <a href="index.html" class="nav-btn" style="text-decoration:none;">
+            <i class="fas fa-globe"></i> Ver Site Público
         </a>
-      </div>
-      <a href="index.html" class="nav-btn"><i class="fas fa-globe"></i> Ver Site Público</a>
     </div>
-  </header>
+</header>
 
-  <main class="container admin-container">
+<!-- MAIN -->
+<main class="container admin-container">
+    <!-- Estatísticas -->
+    <div class="admin-card" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;">
+        <div style="text-align:center;">
+            <div style="font-size: 28px; font-weight: 700; color: var(--cor-primaria);" id="stat-total">0</div>
+            <div style="font-size: 13px; color: var(--cor-texto-suave);">Total Professores</div>
+        </div>
+        <div style="text-align:center;">
+            <div style="font-size: 28px; font-weight: 700; color: #F59E0B;" id="stat-pending">0</div>
+            <div style="font-size: 13px; color: var(--cor-texto-suave);">Pendentes</div>
+        </div>
+        <div style="text-align:center;">
+            <div style="font-size: 28px; font-weight: 700; color: #10B981;" id="stat-approved">0</div>
+            <div style="font-size: 13px; color: var(--cor-texto-suave);">Aprovados</div>
+        </div>
+        <div style="text-align:center;">
+            <div style="font-size: 28px; font-weight: 700; color: #3B82F6;" id="stat-leads">0</div>
+            <div style="font-size: 13px; color: var(--cor-texto-suave);">Pedidos de Aula</div>
+        </div>
+    </div>
+
     <!-- PROFESSORES PENDENTES -->
     <div class="admin-card">
-      <h2><i class="fas fa-user-clock"></i> Professores Pendentes de Aprovação</h2>
-      <p style="font-size:13px; color:#64748B; margin-bottom:16px;">Verifica os dados antes de aprovar a publicação no site.</p>
-      
-      <div style="overflow-x:auto;">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Bairro</th>
-              <th>Instrumentos</th>
-              <th>Preço</th>
-              <th>WhatsApp</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="pending-list">
-            <tr><td colspan="6" style="text-align:center; padding:20px;">A aguardar autenticação...</td></tr>
-          </tbody>
-        </table>
-      </div>
+        <h2><i class="fas fa-user-clock"></i> Professores Pendentes de Aprovação</h2>
+        <p style="font-size:13px; color:#64748B; margin-bottom:16px;">Verifica os dados antes de aprovar a publicação no site.</p>
+        <div style="overflow-x:auto;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Professor</th>
+                        <th>Localização</th>
+                        <th>Instrumentos</th>
+                        <th>Preço</th>
+                        <th>WhatsApp</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="pending-list">
+                    <tr><td colspan="6" style="text-align:center; padding:20px; color:#94A3B8;">A aguardar autenticação...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- PEDIDOS DE AULAS (LEADS) -->
+    <!-- SOLICITAÇÕES DE AULAS -->
     <div class="admin-card">
-      <h2><i class="fas fa-envelope-open-text"></i> Solicitações de Aulas (Alunos)</h2>
-      <p style="font-size:13px; color:#64748B; margin-bottom:16px;">Entra em contacto com os alunos via WhatsApp para fechar a aula.</p>
-      
-      <div style="overflow-x:auto;">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Aluno</th>
-              <th>Professor Solicitado</th>
-              <th>Instrumento</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="leads-list">
-            <tr><td colspan="5" style="text-align:center; padding:20px;">A aguardar autenticação...</td></tr>
-          </tbody>
-        </table>
-      </div>
+        <h2><i class="fas fa-envelope-open-text"></i> Solicitações de Aulas (Alunos)</h2>
+        <p style="font-size:13px; color:#64748B; margin-bottom:16px;">Entra em contacto com os alunos via WhatsApp para fechar a aula.</p>
+        <div style="overflow-x:auto;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Aluno</th>
+                        <th>Professor</th>
+                        <th>Instrumento</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="leads-list">
+                    <tr><td colspan="5" style="text-align:center; padding:20px; color:#94A3B8;">A aguardar autenticação...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-  </main>
+</main>
 
-  <div id="toast-container"></div>
-  
-  <!-- Carregamento do Script de Administração -->
-  <script src="admin.js"></script>
+<div id="toast-container"></div>
+
+<script src="admin.js"></script>
 </body>
 </html>
