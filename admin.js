@@ -90,35 +90,20 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================
 async function carregarEstatisticas() {
     try {
-        // Total de professores
-        const { count: total, error: err1 } = await supabaseClient
-            .from('professors')
-            .select('*', { count: 'exact', head: true });
+        const { data, error } = await supabaseClient
+            .from('admin_stats')
+            .select('*')
+            .limit(1);
         
-        // Pendentes
-        const { count: pending, error: err2 } = await supabaseClient
-            .from('professors')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'pending');
+        if (error) throw error;
         
-        // Aprovados
-        const { count: approved, error: err3 } = await supabaseClient
-            .from('professors')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'approved');
-        
-        // Leads
-        const { count: leads, error: err4 } = await supabaseClient
-            .from('leads')
-            .select('*', { count: 'exact', head: true });
-        
-        if (err1 || err2 || err3 || err4) throw new Error('Erro ao carregar estatísticas');
-        
-        $('#stat-total').textContent = total || 0;
-        $('#stat-pending').textContent = pending || 0;
-        $('#stat-approved').textContent = approved || 0;
-        $('#stat-leads').textContent = leads || 0;
-        
+        if (data && data.length > 0) {
+            const stats = data[0];
+            $('#stat-total').textContent = stats.total_professors || 0;
+            $('#stat-pending').textContent = stats.pending || 0;
+            $('#stat-approved').textContent = stats.approved || 0;
+            $('#stat-leads').textContent = stats.total_leads || 0;
+        }
     } catch (err) {
         console.error('Erro nas estatísticas:', err);
     }
@@ -157,23 +142,23 @@ async function carregarPendentes() {
                 </div>
             </td>
             <td>
-                <span class="badge-province">${escapeHtml(p.province || 'N/A')}</span>
+                <span class="badge-province" style="background:#DBEAFE;color:#1E40AF;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:600;">${escapeHtml(p.province || 'N/A')}</span>
                 <br />
                 <small>${escapeHtml(p.neighborhood)}</small>
             </td>
-            <td>${(p.instruments || []).map(i => `<span class="card-tag card-tag-instrument">${escapeHtml(i)}</span>`).join(' ')}</td>
+            <td>${(p.instruments || []).map(i => `<span style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;background:#DBEAFE;color:#1D4ED8;border:1px solid #BFDBFE;display:inline-block;margin:2px;">${escapeHtml(i)}</span>`).join(' ')}</td>
             <td><strong>${p.price} MT</strong></td>
             <td>
-                <a href="https://wa.me/${p.whatsapp}" target="_blank" class="btn-wa">
+                <a href="https://wa.me/${p.whatsapp}" target="_blank" class="btn-wa" style="background:#25D366;color:white;padding:6px 12px;border-radius:6px;font-weight:600;display:inline-flex;align-items:center;gap:4px;text-decoration:none;font-size:13px;">
                     <i class="fab fa-whatsapp"></i> ${p.whatsapp}
                 </a>
             </td>
             <td>
                 <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                    <button class="btn-approve" onclick="aprovarProfessor('${p.id}')">
+                    <button class="btn-approve" onclick="aprovarProfessor('${p.id}')" style="background:#10B981;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;transition:all 0.25s;">
                         <i class="fas fa-check"></i> Aprovar
                     </button>
-                    <button class="btn-reject" onclick="rejeitarProfessor('${p.id}')">
+                    <button class="btn-reject" onclick="rejeitarProfessor('${p.id}')" style="background:#EF4444;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;transition:all 0.25s;">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -264,14 +249,14 @@ async function carregarLeads() {
                 <td>${dataFormatada}</td>
                 <td><strong>${escapeHtml(l.student_name)}</strong></td>
                 <td>${escapeHtml(l.teacher_name)}</td>
-                <td><span class="card-tag card-tag-instrument">${escapeHtml(l.instrument)}</span></td>
+                <td><span style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;background:#DBEAFE;color:#1D4ED8;border:1px solid #BFDBFE;">${escapeHtml(l.instrument)}</span></td>
                 <td>
                     <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                        <a href="https://wa.me/${l.student_whatsapp}?text=${msgAluno}" target="_blank" class="btn-wa">
+                        <a href="https://wa.me/${l.student_whatsapp}?text=${msgAluno}" target="_blank" class="btn-wa" style="background:#25D366;color:white;padding:6px 12px;border-radius:6px;font-weight:600;display:inline-flex;align-items:center;gap:4px;text-decoration:none;font-size:13px;">
                             <i class="fab fa-whatsapp"></i> Aluno
                         </a>
                         ${l.teacher_whatsapp
-                            ? `<a href="https://wa.me/${l.teacher_whatsapp}?text=${msgProf}" target="_blank" class="btn-approve" style="text-decoration:none;">
+                            ? `<a href="https://wa.me/${l.teacher_whatsapp}?text=${msgProf}" target="_blank" class="btn-approve" style="background:#10B981;color:white;padding:6px 12px;border-radius:6px;font-weight:600;display:inline-flex;align-items:center;gap:4px;text-decoration:none;font-size:13px;">
                                 <i class="fab fa-whatsapp"></i> Professor
                             </a>`
                             : `<span style="color:#94A3B8; font-size:12px;">Sem WhatsApp</span>`
