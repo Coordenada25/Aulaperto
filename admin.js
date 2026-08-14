@@ -105,7 +105,14 @@ async function carregarPendentes() {
 
   tbody.innerHTML = data.map(p => `
     <tr>
-      <td><strong>${escapeHtml(p.name)}</strong><br><small style="color:#64748B;">${p.experience || 1} ano(s) exp.</small></td>
+      <td style="display:flex; align-items:center; gap:10px;">
+        ${p.photo_url
+          ? `<img src="${escapeHtml(p.photo_url)}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+          : ''}
+        <div>
+          <strong>${escapeHtml(p.name)}</strong><br><small style="color:#64748B;">${p.experience || 1} ano(s) exp.</small>
+        </div>
+      </td>
       <td>${escapeHtml(p.neighborhood)}</td>
       <td>${(p.instruments || []).map(i => `<span class="card-tag card-tag-instrument">${escapeHtml(i)}</span>`).join(' ')}</td>
       <td><strong>${p.price} MT</strong></td>
