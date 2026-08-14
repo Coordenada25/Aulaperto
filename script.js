@@ -128,6 +128,40 @@ function limparErrosFormulario(form) {
 }
 
 // ==========================================
+// UPLOAD DE FOTO DE PERFIL
+// ==========================================
+const FOTO_MAX_BYTES = 3 * 1024 * 1024; // 3MB
+const FOTO_TIPOS_ACEITES = ['image/jpeg', 'image/png', 'image/webp'];
+
+async function uploadFotoProfessor(file) {
+  if (!file) return null;
+
+  if (!FOTO_TIPOS_ACEITES.includes(file.type)) {
+    throw new Error('Formato de imagem inválido. Usa JPG, PNG ou WEBP.');
+  }
+  if (file.size > FOTO_MAX_BYTES) {
+    throw new Error('A imagem é demasiado grande (máx. 3MB).');
+  }
+
+  const ext = file.name.split('.').pop().toLowerCase();
+  const nomeUnico = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+
+  const { error: uploadError } = await supabaseClient
+    .storage
+    .from('professor-photos')
+    .upload(nomeUnico, file, { cacheControl: '3600', upsert: false });
+
+  if (uploadError) throw uploadError;
+
+  const { data } = supabaseClient
+    .storage
+    .from('professor-photos')
+    .getPublicUrl(nomeUnico);
+
+  return data.publicUrl;
+}
+
+// ==========================================
 // RENDERIZAÇÃO & UI
 // ==========================================
 function renderSkeletons() {
@@ -195,7 +229,9 @@ function renderTeachers() {
     return `
       <div class="teacher-card">
         <div class="card-top">
-          <div class="card-avatar" style="background: ${getInitialsColor(p.nome)}">${initials(p.nome)}</div>
+          ${p.foto
+            ? `<img src="${escapeHtml(p.foto)}" alt="${escapeHtml(p.nome)}" class="card-avatar" style="object-fit:cover;">`
+            : `<div class="card-avatar" style="background: ${getInitialsColor(p.nome)}">${initials(p.nome)}</div>`}
           <div class="card-info">
             <div class="card-name">
               ${escapeHtml(p.nome)}
@@ -363,7 +399,7 @@ async function carregarProfessores() {
   try {
     const { data, error } = await supabaseClient
       .from('professors')
-      .select('id, name, neighborhood, instruments, price, bio, experience, rating, total_reviews')
+      .select('id, name, neighborhood, instruments, price, bio, experience, rating, total_reviews, photo_url')
       .eq('status', 'approved')
       .order('created_at', { ascending: false });
 
@@ -378,7 +414,8 @@ async function carregarProfessores() {
       bio: p.bio || '',
       experiencia: p.experience || 1,
       avaliacao: p.rating || null,
-      total_avaliacoes: p.total_reviews || 0
+      total_avaliacoes: p.total_reviews || 0,
+      foto: p.photo_url || null
     }));
 
     // Guardar na Cache
@@ -457,6 +494,19 @@ teacherForm.addEventListener('submit', async (e) => {
   setButtonLoading(btnSubmit, true);
 
   try {
+    // Faz upload da foto primeiro (se o professor escolheu uma)
+    let fotoUrl = null;
+    const ficheiroFoto = $('#t-foto') && $('#t-foto').files[0];
+    if (ficheiroFoto) {
+      try {
+        fotoUrl = await uploadFotoProfessor(ficheiroFoto);
+      } catch (fotoErr) {
+        showToast(fotoErr.message || 'Erro ao enviar a foto.', 'error');
+        setButtonLoading(btnSubmit, false, originalBtnContent);
+        return;
+      }
+    }
+
     const { error } = await supabaseClient.from('professors').insert([{
       name: nome, 
       neighborhood: bairro, 
@@ -465,7 +515,8 @@ teacherForm.addEventListener('submit', async (e) => {
       whatsapp: formatarTelefoneMZ(rawWhatsapp), 
       bio: bio,
       experience: Number(exp) || 1,
-      status: 'pending'
+      status: 'pending',
+      photo_url: fotoUrl
     }]);
 
     if (error) throw error;
