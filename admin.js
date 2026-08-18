@@ -5,7 +5,6 @@ const SUPABASE_URL = "https://zxxwxwtsolbnyzbrabwp.supabase.co";
 const SUPABASE_KEY = "sb_publishable_x0Ehx6SckG0JHXqdvOusXw_5LG12KPm";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let currentPin = '';
 const $ = (s) => document.querySelector(s);
 
 // ============================================
@@ -28,12 +27,12 @@ function showToast(mensagem, tipo = 'info') {
     }, 4000);
 }
 
-function setButtonLoading(btn, isLoading, originalText) {
+function setButtonLoading(btn, isLoading, originalText, loadingText = 'A verificar...') {
     if (!btn) return;
     if (isLoading) {
         btn.classList.add('btn-loading');
         btn.disabled = true;
-        btn.innerHTML = `<span class="spinner"></span> A verificar...`;
+        btn.innerHTML = `<span class="spinner"></span> ${loadingText}`;
     } else {
         btn.classList.remove('btn-loading');
         btn.disabled = false;
@@ -42,52 +41,96 @@ function setButtonLoading(btn, isLoading, originalText) {
 }
 
 // ============================================
-// AUTENTICAÇÃO
+// AUTENTICAÇÃO (Supabase Auth — email + palavra-passe)
 // ============================================
-async function autenticarAdmin() {
-    const pinInput = $('#admin-pin-input');
+function mostrarErroLogin(mensagem) {
+    const errEl = $('#login-error');
+    if (!errEl) return;
+    errEl.textContent = mensagem;
+    errEl.style.display = 'block';
+}
+
+function limparErroLogin() {
+    const errEl = $('#login-error');
+    if (errEl) errEl.style.display = 'none';
+}
+
+async function autenticarAdmin(e) {
+    if (e) e.preventDefault();
+    const emailInput = $('#admin-email-input');
+    const passwordInput = $('#admin-password-input');
     const btnLogin = $('#btn-admin-login');
-    if (!pinInput || !btnLogin) return;
-    
-    const pinValue = pinInput.value.trim();
-    if (!pinValue) {
-        alert('Insere o PIN de administrador.');
+    if (!emailInput || !passwordInput || !btnLogin) return;
+
+    limparErroLogin();
+
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!email || !password) {
+        mostrarErroLogin('Preenche o email e a palavra-passe.');
         return;
     }
-    
-    // PIN fixo para teste
-    if (pinValue !== '1234') {
-        alert('PIN incorreto!');
-        return;
-    }
-    
+
     const originalText = btnLogin.innerHTML;
     setButtonLoading(btnLogin, true, originalText);
-    currentPin = pinValue;
-    
+
     try {
-        await carregarPendentes();
-        await carregarLeads();
-        await carregarEstatisticas();
-        $('#pin-modal').style.display = 'none';
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+
+        // onAuthStateChange (registered below) picks up the new session
+        // and handles hiding the modal + loading the dashboard data.
         showToast('Acesso concedido com sucesso!', 'success');
     } catch (err) {
-        console.error('Erro:', err);
-        alert('Erro ao carregar dados: ' + err.message);
+        console.error('Erro de autenticação:', err);
+        mostrarErroLogin('Email ou palavra-passe incorretos.');
     } finally {
         setButtonLoading(btnLogin, false, originalText);
     }
 }
 
-// Enter key
-document.addEventListener('DOMContentLoaded', () => {
-    const pinInput = $('#admin-pin-input');
-    if (pinInput) {
-        pinInput.focus();
-        pinInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') autenticarAdmin();
-        });
+async function terminarSessao() {
+    try {
+        await supabaseClient.auth.signOut();
+    } catch (err) {
+        console.error('Erro ao terminar sessão:', err);
     }
+    // onAuthStateChange handles showing the login modal again.
+}
+
+async function carregarPainel() {
+    try {
+        await carregarPendentes();
+        await carregarLeads();
+        await carregarEstatisticas();
+    } catch (err) {
+        console.error('Erro ao carregar painel:', err);
+        showToast('Erro ao carregar dados do painel.', 'error');
+    }
+}
+
+// Reacts to sign-in / sign-out, including a session already stored
+// from a previous visit (so the admin doesn't have to log in every time).
+supabaseClient.auth.onAuthStateChange((event, session) => {
+    const modal = $('#login-modal');
+    const btnLogout = $('#btn-logout');
+    if (session) {
+        if (modal) modal.style.display = 'none';
+        if (btnLogout) btnLogout.style.display = 'inline-flex';
+        carregarPainel();
+    } else {
+        if (modal) modal.style.display = 'flex';
+        if (btnLogout) btnLogout.style.display = 'none';
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = $('#login-form');
+    if (loginForm) loginForm.addEventListener('submit', autenticarAdmin);
+
+    const emailInput = $('#admin-email-input');
+    if (emailInput) emailInput.focus();
 });
 
 // ============================================
@@ -95,33 +138,29 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================
 async function carregarEstatisticas() {
     try {
-        // Total de professores
         const { count: total } = await supabaseClient
             .from('professors')
             .select('*', { count: 'exact', head: true });
-        
-        // Pendentes
+
         const { count: pending } = await supabaseClient
             .from('professors')
             .select('*', { count: 'exact', head: true })
             .eq('status', 'pending');
-        
-        // Aprovados
+
         const { count: approved } = await supabaseClient
             .from('professors')
             .select('*', { count: 'exact', head: true })
             .eq('status', 'approved');
-        
-        // Leads
+
         const { count: leads } = await supabaseClient
             .from('leads')
             .select('*', { count: 'exact', head: true });
-        
+
         $('#stat-total').textContent = total || 0;
         $('#stat-pending').textContent = pending || 0;
         $('#stat-approved').textContent = approved || 0;
         $('#stat-leads').textContent = leads || 0;
-        
+
     } catch (err) {
         console.error('Erro nas estatísticas:', err);
     }
@@ -137,17 +176,17 @@ async function carregarPendentes() {
             .select('*')
             .eq('status', 'pending')
             .order('created_at', { ascending: false });
-        
+
         if (error) throw error;
-        
+
         const tbody = $('#pending-list');
         if (!tbody) return;
-        
+
         if (!data || data.length === 0) {
             tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94A3B8; padding:20px;">Nenhum professor pendente.</td></tr>`;
             return;
         }
-        
+
         tbody.innerHTML = data.map(p => `
             <tr>
                 <td>
@@ -187,7 +226,7 @@ async function carregarPendentes() {
                 </td>
             </tr>
         `).join('');
-        
+
     } catch (err) {
         console.error('Erro ao carregar pendentes:', err);
         throw err;
@@ -221,9 +260,9 @@ async function aprovarProfessor(id) {
             .from('professors')
             .update({ status: 'approved' })
             .eq('id', id);
-        
+
         if (error) throw error;
-        
+
         showToast('Professor aprovado com sucesso!', 'success');
         localStorage.removeItem('aulaperto_teachers_cache');
         await carregarPendentes();
@@ -241,9 +280,9 @@ async function rejeitarProfessor(id) {
             .from('professors')
             .update({ status: 'rejected' })
             .eq('id', id);
-        
+
         if (error) throw error;
-        
+
         showToast('Cadastro rejeitado.', 'info');
         await carregarPendentes();
         await carregarEstatisticas();
@@ -262,21 +301,21 @@ async function carregarLeads() {
             .from('leads')
             .select('*')
             .order('created_at', { ascending: false });
-        
+
         if (error) throw error;
-        
+
         const tbody = $('#leads-list');
         if (!tbody) return;
-        
+
         if (!data || data.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94A3B8; padding:20px;">Nenhuma solicitação de aula.</td></tr>`;
             return;
         }
-        
+
         tbody.innerHTML = data.map(l => {
             const dataFormatada = new Date(l.created_at).toLocaleDateString('pt-MZ');
             const msgAluno = encodeURIComponent(`Olá ${l.student_name}, recebemos o teu pedido no AulaPerto!`);
-            
+
             return `
                 <tr>
                     <td>${dataFormatada}</td>
@@ -293,7 +332,7 @@ async function carregarLeads() {
                 </tr>
             `;
         }).join('');
-        
+
     } catch (err) {
         console.error('Erro ao carregar leads:', err);
         throw err;
