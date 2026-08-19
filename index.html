@@ -85,14 +85,14 @@
                         </div>
                     </div>
                     
-                    <!-- Coluna Direita - Banner -->
+                    <!-- Coluna Direita - Banner (slot Destaque, patrocínio real ou convite) -->
                     <div class="hero-banner">
                         <div class="banner-principal">
-                            <div class="banner-content">
+                            <div class="banner-content" id="hero-banner-content">
                                 <span class="banner-tag">🎵 Parcerias</span>
                                 <h3>Anuncie no AulaPerto</h3>
                                 <p>Conecte-se com milhares de alunos</p>
-                                <a href="#contacto" class="btn-banner">Saiba mais</a>
+                                <a href="mailto:parcerias@aulaperto.co.mz" class="btn-banner">Saiba mais</a>
                             </div>
                             <div class="banner-image">
                                 <i class="fas fa-guitar"></i>
@@ -135,6 +135,11 @@
                 <button id="btn-search" class="btn-primary">
                     <i class="fas fa-search"></i> Pesquisar
                 </button>
+            </div>
+
+            <!-- FAIXA DE PATROCÍNIOS (slot Padrão) — só aparece se houver algum ativo -->
+            <div id="sponsor-strip-section" class="sponsor-strip-section" style="display:none;">
+                <div id="sponsor-strip" class="sponsor-strip"></div>
             </div>
 
             <!-- LISTA DE PROFESSORES -->
