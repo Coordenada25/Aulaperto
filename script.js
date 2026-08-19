@@ -303,7 +303,7 @@ function renderSponsorCard(sponsor) {
 
     if (sponsor.link_url) {
         return `
-            <a class="${cardClass}" href="${escapeHtml(sponsor.link_url)}" target="_blank" rel="noopener sponsored" style="text-decoration:none; color:inherit;">
+            <a class="${cardClass} sponsor-link" data-sponsor-id="${sponsor.id}" href="${escapeHtml(sponsor.link_url)}" target="_blank" rel="noopener sponsored" style="text-decoration:none; color:inherit;">
                 <div class="ad-content">${inner}</div>
             </a>
         `;
@@ -524,6 +524,15 @@ $('#results-grid').addEventListener('click', (e) => {
     const btn = e.target.closest('.btn-pedir-aula');
     if (btn) {
         abrirModalContacto(btn.dataset.nome, btn.dataset.instrumentos);
+    }
+});
+
+// Track de cliques em patrocínios — não bloqueia a navegação (abre em nova aba)
+$('#results-grid').addEventListener('click', (e) => {
+    const link = e.target.closest('.sponsor-link');
+    if (link && link.dataset.sponsorId) {
+        supabaseClient.rpc('registar_click_patrocinio', { p_sponsor_id: link.dataset.sponsorId })
+            .then(({ error }) => { if (error) console.error('Erro ao registar clique:', error); });
     }
 });
 
