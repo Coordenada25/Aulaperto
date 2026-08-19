@@ -22,6 +22,7 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 
 let professores = [];
 let allLocations = [];
+let sponsors = [];
 
 // DOM Helpers
 const $ = (s) => document.querySelector(s);
@@ -228,9 +229,13 @@ function renderTeacherCard(p) {
     const ratingHTML = temAvaliacoes
         ? `<div class="card-rating">${renderStars(p.avaliacao)} ${p.avaliacao.toFixed(1)} <span>(${p.total_avaliacoes})</span></div>`
         : `<div class="card-rating"><span class="badge-new"><i class="fas fa-sparkles"></i> Novo</span></div>`;
-    
+
+    const featuredBadge = p.featured
+        ? `<span class="badge badge-featured"><i class="fas fa-star"></i> Destaque</span>`
+        : '';
+
     return `
-        <div class="teacher-card">
+        <div class="teacher-card ${p.featured ? 'is-featured' : ''}">
             <div class="card-top">
                 ${p.foto
                     ? `<img src="${escapeHtml(p.foto)}" alt="${escapeHtml(p.nome)}" class="card-avatar" style="object-fit:cover;" />`
@@ -239,6 +244,7 @@ function renderTeacherCard(p) {
                 <div class="card-info">
                     <div class="card-name">
                         ${escapeHtml(p.nome)}
+                        ${featuredBadge}
                         <span class="badge badge-gold"><i class="fas fa-check-circle"></i> Aprovado</span>
                     </div>
                     ${ratingHTML}
@@ -262,18 +268,65 @@ function renderTeacherCard(p) {
     `;
 }
 
-function renderAdCard(type, title, description) {
-    const isFeatured = type === 'featured';
+// ============================================
+// PATROCÍNIOS (ANÚNCIOS REAIS)
+// ============================================
+async function carregarSponsors() {
+    try {
+        const { data, error } = await supabaseClient
+            .from('sponsors')
+            .select('*')
+            .eq('active', true)
+            .order('display_order', { ascending: true })
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        sponsors = data || [];
+    } catch (err) {
+        console.error('Erro ao carregar patrocínios:', err);
+        sponsors = [];
+    }
+}
+
+function renderSponsorCard(sponsor) {
+    const isFeatured = sponsor.style === 'featured';
     const icon = isFeatured ? 'fa-star' : 'fa-store';
-    
+    const inner = `
+        <span class="ad-badge">${isFeatured ? 'Destaque' : 'Anúncio'}</span>
+        <i class="fas ${icon} ad-icon"></i>
+        <h4>${escapeHtml(sponsor.title)}</h4>
+        <p>${escapeHtml(sponsor.description)}</p>
+        ${sponsor.link_url ? `<span class="btn-ad">Saiba mais</span>` : ''}
+    `;
+
+    const cardClass = `ad-card ${isFeatured ? 'ad-featured' : ''}`;
+
+    if (sponsor.link_url) {
+        return `
+            <a class="${cardClass}" href="${escapeHtml(sponsor.link_url)}" target="_blank" rel="noopener sponsored" style="text-decoration:none; color:inherit;">
+                <div class="ad-content">${inner}</div>
+            </a>
+        `;
+    }
+
     return `
-        <div class="ad-card ${isFeatured ? 'ad-featured' : ''}">
+        <div class="${cardClass}">
+            <div class="ad-content">${inner}</div>
+        </div>
+    `;
+}
+
+// Quando não há patrocinadores pagos, mostra um convite real em vez de
+// um anúncio falso — vira o espaço vazio num pitch de vendas.
+function renderSponsorCTA() {
+    return `
+        <div class="ad-card ad-featured">
             <div class="ad-content">
-                <span class="ad-badge">${isFeatured ? 'Destaque' : 'Anúncio'}</span>
-                <i class="fas ${icon} ad-icon"></i>
-                <h4>${escapeHtml(title)}</h4>
-                <p>${escapeHtml(description)}</p>
-                ${isFeatured ? '<a href="#contacto" class="btn-ad">Saiba mais</a>' : ''}
+                <span class="ad-badge">Espaço Disponível</span>
+                <i class="fas fa-bullhorn ad-icon"></i>
+                <h4>Anuncie aqui</h4>
+                <p>Alcance alunos de música em todo Moçambique</p>
+                <a href="mailto:parcerias@aulaperto.co.mz" class="btn-ad">Contactar</a>
             </div>
         </div>
     `;
@@ -306,16 +359,21 @@ function renderTeachers() {
         return;
     }
     
-    // Intercalar anúncios
+    // Intercalar anúncios (patrocínios reais, com convite de venda quando vazio)
     let html = '';
     const adPositions = [3, 7];
-    
+    let sponsorCursor = 0;
+
+    const nextAdCard = () => {
+        if (sponsors.length === 0) return renderSponsorCTA();
+        const sponsor = sponsors[sponsorCursor % sponsors.length];
+        sponsorCursor++;
+        return renderSponsorCard(sponsor);
+    };
+
     filtered.forEach((p, index) => {
         if (adPositions.includes(index)) {
-            html += renderAdCard('standard', 'Loja de Música', 'Instrumentos com desconto');
-        }
-        if (index === 5) {
-            html += renderAdCard('featured', 'Anuncie aqui', 'Seja um parceiro AulaPerto');
+            html += nextAdCard();
         }
         html += renderTeacherCard(p);
     });
@@ -357,8 +415,9 @@ async function carregarProfessores() {
     try {
         const { data, error } = await supabaseClient
             .from('professors')
-            .select('id, name, neighborhood, province, instruments, price, bio, experience, rating, total_reviews, photo_url')
+            .select('id, name, neighborhood, province, instruments, price, bio, experience, rating, total_reviews, photo_url, featured')
             .eq('status', 'approved')
+            .order('featured', { ascending: false })
             .order('created_at', { ascending: false });
         
         if (error) throw error;
@@ -374,7 +433,8 @@ async function carregarProfessores() {
             experiencia: p.experience || 1,
             avaliacao: p.rating || null,
             total_avaliacoes: p.total_reviews || 0,
-            foto: p.photo_url || null
+            foto: p.photo_url || null,
+            featured: !!p.featured
         }));
         
         // Guardar cache
@@ -713,6 +773,7 @@ $$('.footer-links a').forEach(link => {
 document.addEventListener('DOMContentLoaded', async () => {
     populateSelects();
     await carregarLocalizacoes();
+    await carregarSponsors();
     await carregarProfessores();
     
     // Event listeners de filtros
