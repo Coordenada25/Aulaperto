@@ -28,6 +28,18 @@
         .btn-wa:hover { background: #1DA851; }
         .btn-logout { background: none; border: 1px solid var(--cor-borda); color: var(--cor-texto-suave); padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 13px; cursor: pointer; transition: var(--transition); }
         .btn-logout:hover { border-color: #EF4444; color: #EF4444; }
+
+        .btn-featured-on { background: #F59E0B; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: var(--transition); }
+        .btn-featured-on:hover { background: #D97706; }
+        .btn-featured-off { background: var(--cor-fundo); color: var(--cor-texto-suave); border: 1px solid var(--cor-borda); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: var(--transition); }
+        .btn-featured-off:hover { border-color: #F59E0B; color: #F59E0B; }
+        .btn-small-danger { background: none; border: 1px solid var(--cor-borda); color: #94A3B8; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: var(--transition); }
+        .btn-small-danger:hover { border-color: #EF4444; color: #EF4444; }
+
+        .sponsor-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; padding: 16px; background: var(--cor-fundo); border-radius: var(--radius-pequeno); border: 1px solid var(--cor-borda); }
+        .sponsor-form .full { grid-column: 1 / -1; }
+        .sponsor-form label { display: block; font-size: 11px; font-weight: 700; color: var(--cor-texto-suave); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+        .sponsor-form input, .sponsor-form select, .sponsor-form textarea { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--cor-borda); font-family: 'Inter', sans-serif; font-size: 13px; }
         
         .pin-modal { background: rgba(15,23,42,0.8); position: fixed; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; z-index:9999; }
         .pin-box { background: white; padding: 30px; border-radius: var(--radius); text-align: center; max-width: 340px; width: 90%; box-shadow: var(--sombra-forte); }
@@ -40,11 +52,14 @@
         .badge-status { padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
         .badge-status.pending { background: #FEF3C7; color: #92400E; }
         .badge-status.approved { background: #D1FAE5; color: #065F46; }
+        .badge-status.active { background: #D1FAE5; color: #065F46; }
+        .badge-status.inactive { background: #F1F5F9; color: #64748B; }
         
         @media (max-width: 768px) {
             .admin-table { font-size: 12px; }
             .admin-table th, .admin-table td { padding: 8px; }
             .admin-card { padding: 12px; }
+            .sponsor-form { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -92,22 +107,30 @@
 <!-- MAIN -->
 <main class="container admin-container">
     <!-- Estatísticas -->
-    <div class="admin-card" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;">
+    <div class="admin-card" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 16px;">
         <div style="text-align:center;">
-            <div style="font-size: 28px; font-weight: 700; color: var(--cor-primaria);" id="stat-total">0</div>
-            <div style="font-size: 13px; color: var(--cor-texto-suave);">Total Professores</div>
+            <div style="font-size: 26px; font-weight: 700; color: var(--cor-primaria);" id="stat-total">0</div>
+            <div style="font-size: 12px; color: var(--cor-texto-suave);">Total Professores</div>
         </div>
         <div style="text-align:center;">
-            <div style="font-size: 28px; font-weight: 700; color: #F59E0B;" id="stat-pending">0</div>
-            <div style="font-size: 13px; color: var(--cor-texto-suave);">Pendentes</div>
+            <div style="font-size: 26px; font-weight: 700; color: #F59E0B;" id="stat-pending">0</div>
+            <div style="font-size: 12px; color: var(--cor-texto-suave);">Pendentes</div>
         </div>
         <div style="text-align:center;">
-            <div style="font-size: 28px; font-weight: 700; color: #10B981;" id="stat-approved">0</div>
-            <div style="font-size: 13px; color: var(--cor-texto-suave);">Aprovados</div>
+            <div style="font-size: 26px; font-weight: 700; color: #10B981;" id="stat-approved">0</div>
+            <div style="font-size: 12px; color: var(--cor-texto-suave);">Aprovados</div>
         </div>
         <div style="text-align:center;">
-            <div style="font-size: 28px; font-weight: 700; color: #3B82F6;" id="stat-leads">0</div>
-            <div style="font-size: 13px; color: var(--cor-texto-suave);">Pedidos de Aula</div>
+            <div style="font-size: 26px; font-weight: 700; color: #F97316;" id="stat-featured">0</div>
+            <div style="font-size: 12px; color: var(--cor-texto-suave);">Em Destaque</div>
+        </div>
+        <div style="text-align:center;">
+            <div style="font-size: 26px; font-weight: 700; color: #3B82F6;" id="stat-leads">0</div>
+            <div style="font-size: 12px; color: var(--cor-texto-suave);">Pedidos de Aula</div>
+        </div>
+        <div style="text-align:center;">
+            <div style="font-size: 26px; font-weight: 700; color: #7C3AED;" id="stat-sponsors">0</div>
+            <div style="font-size: 12px; color: var(--cor-texto-suave);">Patrocínios Ativos</div>
         </div>
     </div>
 
@@ -129,6 +152,77 @@
                 </thead>
                 <tbody id="pending-list">
                     <tr><td colspan="6" style="text-align:center; padding:20px; color:#94A3B8;">A aguardar autenticação...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- PROFESSORES APROVADOS (DESTAQUE) -->
+    <div class="admin-card">
+        <h2><i class="fas fa-star"></i> Professores Aprovados</h2>
+        <p style="font-size:13px; color:#64748B; margin-bottom:16px;">Marca um professor como "Destaque" para o colocar no topo da pesquisa pública, com selo especial. Usa isto para vender destaques a professores (cobrança feita manualmente, ex. M-Pesa/e-Mola).</p>
+        <div style="overflow-x:auto;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Professor</th>
+                        <th>Localização</th>
+                        <th>Preço</th>
+                        <th>Estado</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="approved-list">
+                    <tr><td colspan="5" style="text-align:center; padding:20px; color:#94A3B8;">A aguardar autenticação...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- PATROCÍNIOS -->
+    <div class="admin-card">
+        <h2><i class="fas fa-bullhorn"></i> Patrocínios (Anúncios)</h2>
+        <p style="font-size:13px; color:#64748B; margin-bottom:16px;">Estes anúncios aparecem intercalados na grelha de professores no site público. Quando não há nenhum ativo, o site mostra um convite de venda em vez de um anúncio falso.</p>
+
+        <form id="sponsor-form" class="sponsor-form">
+            <div>
+                <label for="s-titulo">Título *</label>
+                <input type="text" id="s-titulo" placeholder="Ex: Loja de Música Maputo" required />
+            </div>
+            <div>
+                <label for="s-estilo">Estilo</label>
+                <select id="s-estilo">
+                    <option value="standard">Padrão</option>
+                    <option value="featured">Destaque (escuro)</option>
+                </select>
+            </div>
+            <div class="full">
+                <label for="s-descricao">Descrição *</label>
+                <input type="text" id="s-descricao" placeholder="Ex: Instrumentos com desconto para alunos AulaPerto" required />
+            </div>
+            <div class="full">
+                <label for="s-link">Link (opcional)</label>
+                <input type="url" id="s-link" placeholder="https://..." />
+            </div>
+            <div class="full">
+                <button type="submit" class="btn-primary" style="width:100%;">
+                    <i class="fas fa-plus"></i> Adicionar Patrocínio
+                </button>
+            </div>
+        </form>
+
+        <div style="overflow-x:auto;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Estilo</th>
+                        <th>Estado</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="sponsors-list">
+                    <tr><td colspan="4" style="text-align:center; padding:20px; color:#94A3B8;">A aguardar autenticação...</td></tr>
                 </tbody>
             </table>
         </div>
