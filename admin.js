@@ -78,9 +78,6 @@ async function autenticarAdmin(e) {
     try {
         const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
         if (error) throw error;
-
-        // onAuthStateChange (registered below) picks up the new session
-        // and handles hiding the modal + loading the dashboard data.
         showToast('Acesso concedido com sucesso!', 'success');
     } catch (err) {
         console.error('Erro de autenticação:', err);
@@ -96,13 +93,16 @@ async function terminarSessao() {
     } catch (err) {
         console.error('Erro ao terminar sessão:', err);
     }
-    // onAuthStateChange handles showing the login modal again.
 }
 
 async function carregarPainel() {
     try {
-        await carregarPendentes();
-        await carregarLeads();
+        await Promise.all([
+            carregarPendentes(),
+            carregarAprovados(),
+            carregarSponsorsAdmin(),
+            carregarLeads(),
+        ]);
         await carregarEstatisticas();
     } catch (err) {
         console.error('Erro ao carregar painel:', err);
@@ -110,8 +110,6 @@ async function carregarPainel() {
     }
 }
 
-// Reacts to sign-in / sign-out, including a session already stored
-// from a previous visit (so the admin doesn't have to log in every time).
 supabaseClient.auth.onAuthStateChange((event, session) => {
     const modal = $('#login-modal');
     const btnLogout = $('#btn-logout');
@@ -129,9 +127,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginForm = $('#login-form');
     if (loginForm) loginForm.addEventListener('submit', autenticarAdmin);
 
+    const sponsorForm = $('#sponsor-form');
+    if (sponsorForm) sponsorForm.addEventListener('submit', criarSponsor);
+
     const emailInput = $('#admin-email-input');
     if (emailInput) emailInput.focus();
 });
+
+// ============================================
+// HELPERS
+// ============================================
+function getColor(name) {
+    const colors = ['#2563EB', '#7C3AED', '#0284C7', '#4F46E5', '#0EA5E9'];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
+}
+
+function initials(name) {
+    if (!name) return 'P';
+    return name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
 
 // ============================================
 // CARREGAR ESTATÍSTICAS
@@ -152,14 +173,27 @@ async function carregarEstatisticas() {
             .select('*', { count: 'exact', head: true })
             .eq('status', 'approved');
 
+        const { count: featured } = await supabaseClient
+            .from('professors')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'approved')
+            .eq('featured', true);
+
         const { count: leads } = await supabaseClient
             .from('leads')
             .select('*', { count: 'exact', head: true });
 
+        const { count: sponsorsAtivos } = await supabaseClient
+            .from('sponsors')
+            .select('*', { count: 'exact', head: true })
+            .eq('active', true);
+
         $('#stat-total').textContent = total || 0;
         $('#stat-pending').textContent = pending || 0;
         $('#stat-approved').textContent = approved || 0;
+        $('#stat-featured').textContent = featured || 0;
         $('#stat-leads').textContent = leads || 0;
+        $('#stat-sponsors').textContent = sponsorsAtivos || 0;
 
     } catch (err) {
         console.error('Erro nas estatísticas:', err);
@@ -216,10 +250,10 @@ async function carregarPendentes() {
                 </td>
                 <td>
                     <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                        <button onclick="aprovarProfessor('${p.id}')" style="background:#10B981;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;">
+                        <button onclick="aprovarProfessor('${p.id}')" class="btn-approve">
                             <i class="fas fa-check"></i> Aprovar
                         </button>
-                        <button onclick="rejeitarProfessor('${p.id}')" style="background:#EF4444;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;">
+                        <button onclick="rejeitarProfessor('${p.id}')" class="btn-reject">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -233,26 +267,6 @@ async function carregarPendentes() {
     }
 }
 
-function getColor(name) {
-    const colors = ['#2563EB', '#7C3AED', '#0284C7', '#4F46E5', '#0EA5E9'];
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    return colors[Math.abs(hash) % colors.length];
-}
-
-function initials(name) {
-    if (!name) return 'P';
-    return name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-}
-
-// ============================================
-// APROVAR / REJEITAR PROFESSOR
-// ============================================
 async function aprovarProfessor(id) {
     if (!confirm('Desejas aprovar este professor?')) return;
     try {
@@ -266,6 +280,7 @@ async function aprovarProfessor(id) {
         showToast('Professor aprovado com sucesso!', 'success');
         localStorage.removeItem('aulaperto_teachers_cache');
         await carregarPendentes();
+        await carregarAprovados();
         await carregarEstatisticas();
     } catch (err) {
         console.error('Erro ao aprovar:', err);
@@ -289,6 +304,209 @@ async function rejeitarProfessor(id) {
     } catch (err) {
         console.error('Erro ao rejeitar:', err);
         showToast('Erro ao rejeitar cadastro.', 'error');
+    }
+}
+
+// ============================================
+// PROFESSORES APROVADOS (DESTAQUE)
+// ============================================
+async function carregarAprovados() {
+    try {
+        const { data, error } = await supabaseClient
+            .from('professors')
+            .select('id, name, neighborhood, province, price, featured')
+            .eq('status', 'approved')
+            .order('featured', { ascending: false })
+            .order('name', { ascending: true });
+
+        if (error) throw error;
+
+        const tbody = $('#approved-list');
+        if (!tbody) return;
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94A3B8; padding:20px;">Nenhum professor aprovado ainda.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = data.map(p => `
+            <tr>
+                <td><strong>${escapeHtml(p.name)}</strong></td>
+                <td>
+                    <span style="background:#DBEAFE;color:#1E40AF;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:600;">${escapeHtml(p.province || 'N/A')}</span>
+                    <br />
+                    <small>${escapeHtml(p.neighborhood)}</small>
+                </td>
+                <td><strong>${p.price} MT</strong></td>
+                <td>
+                    ${p.featured
+                        ? `<span class="badge-status approved"><i class="fas fa-star"></i> Destaque</span>`
+                        : `<span class="badge-status pending" style="background:#F1F5F9;color:#64748B;">Normal</span>`
+                    }
+                </td>
+                <td>
+                    ${p.featured
+                        ? `<button onclick="alternarDestaque('${p.id}', true)" class="btn-featured-off"><i class="fas fa-star-half-alt"></i> Remover Destaque</button>`
+                        : `<button onclick="alternarDestaque('${p.id}', false)" class="btn-featured-on"><i class="fas fa-star"></i> Destacar</button>`
+                    }
+                </td>
+            </tr>
+        `).join('');
+
+    } catch (err) {
+        console.error('Erro ao carregar aprovados:', err);
+        throw err;
+    }
+}
+
+async function alternarDestaque(id, estaAtualmenteDestacado) {
+    const novoValor = !estaAtualmenteDestacado;
+    try {
+        const { error } = await supabaseClient
+            .from('professors')
+            .update({ featured: novoValor, featured_at: novoValor ? new Date().toISOString() : null })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        showToast(novoValor ? 'Professor marcado como destaque!' : 'Destaque removido.', 'success');
+        localStorage.removeItem('aulaperto_teachers_cache');
+        await carregarAprovados();
+        await carregarEstatisticas();
+    } catch (err) {
+        console.error('Erro ao alternar destaque:', err);
+        showToast('Erro ao atualizar destaque.', 'error');
+    }
+}
+
+// ============================================
+// PATROCÍNIOS (ANÚNCIOS)
+// ============================================
+async function carregarSponsorsAdmin() {
+    try {
+        const { data, error } = await supabaseClient
+            .from('sponsors')
+            .select('*')
+            .order('display_order', { ascending: true })
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const tbody = $('#sponsors-list');
+        if (!tbody) return;
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#94A3B8; padding:20px;">Nenhum patrocínio criado ainda.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = data.map(s => `
+            <tr>
+                <td>
+                    <strong>${escapeHtml(s.title)}</strong>
+                    <br />
+                    <small style="color:#64748B;">${escapeHtml(s.description)}</small>
+                </td>
+                <td>${s.style === 'featured' ? 'Destaque' : 'Padrão'}</td>
+                <td>
+                    ${s.active
+                        ? `<span class="badge-status active">Ativo</span>`
+                        : `<span class="badge-status inactive">Inativo</span>`
+                    }
+                </td>
+                <td>
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button onclick="alternarSponsorAtivo('${s.id}', ${s.active})" class="${s.active ? 'btn-featured-off' : 'btn-approve'}">
+                            ${s.active ? 'Desativar' : 'Ativar'}
+                        </button>
+                        <button onclick="eliminarSponsor('${s.id}')" class="btn-small-danger">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+
+    } catch (err) {
+        console.error('Erro ao carregar patrocínios:', err);
+        throw err;
+    }
+}
+
+async function criarSponsor(e) {
+    e.preventDefault();
+    const btnSubmit = e.target.querySelector('button[type="submit"]');
+    const originalText = btnSubmit.innerHTML;
+
+    const titulo = $('#s-titulo').value.trim();
+    const descricao = $('#s-descricao').value.trim();
+    const link = $('#s-link').value.trim();
+    const estilo = $('#s-estilo').value;
+
+    if (!titulo || !descricao) {
+        showToast('Preenche o título e a descrição.', 'error');
+        return;
+    }
+
+    setButtonLoading(btnSubmit, true, originalText, 'A criar...');
+
+    try {
+        const { error } = await supabaseClient.from('sponsors').insert([{
+            title: titulo,
+            description: descricao,
+            link_url: link || null,
+            style: estilo,
+            active: true
+        }]);
+
+        if (error) throw error;
+
+        showToast('Patrocínio criado com sucesso!', 'success');
+        $('#sponsor-form').reset();
+        await carregarSponsorsAdmin();
+        await carregarEstatisticas();
+    } catch (err) {
+        console.error('Erro ao criar patrocínio:', err);
+        showToast('Erro ao criar patrocínio.', 'error');
+    } finally {
+        setButtonLoading(btnSubmit, false, originalText);
+    }
+}
+
+async function alternarSponsorAtivo(id, estaAtivo) {
+    try {
+        const { error } = await supabaseClient
+            .from('sponsors')
+            .update({ active: !estaAtivo })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        showToast(!estaAtivo ? 'Patrocínio ativado.' : 'Patrocínio desativado.', 'success');
+        await carregarSponsorsAdmin();
+        await carregarEstatisticas();
+    } catch (err) {
+        console.error('Erro ao atualizar patrocínio:', err);
+        showToast('Erro ao atualizar patrocínio.', 'error');
+    }
+}
+
+async function eliminarSponsor(id) {
+    if (!confirm('Eliminar este patrocínio permanentemente?')) return;
+    try {
+        const { error } = await supabaseClient
+            .from('sponsors')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+
+        showToast('Patrocínio eliminado.', 'info');
+        await carregarSponsorsAdmin();
+        await carregarEstatisticas();
+    } catch (err) {
+        console.error('Erro ao eliminar patrocínio:', err);
+        showToast('Erro ao eliminar patrocínio.', 'error');
     }
 }
 
