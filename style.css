@@ -515,6 +515,20 @@ a { text-decoration: none; color: inherit; }
 }
 
 /* ============================================
+   DESTAQUE (FEATURED) — professores em destaque
+   ============================================ */
+.teacher-card.is-featured {
+    border: 2px solid #F59E0B;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12), var(--sombra-media);
+    position: relative;
+}
+
+.badge-featured {
+    background: linear-gradient(135deg, #F59E0B, #F97316);
+    color: white;
+}
+
+/* ============================================
    ANÚNCIOS NA GRID
    ============================================ */
 .ad-card {
