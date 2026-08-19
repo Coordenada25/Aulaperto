@@ -288,48 +288,65 @@ async function carregarSponsors() {
     }
 }
 
-function renderSponsorCard(sponsor) {
-    const isFeatured = sponsor.style === 'featured';
-    const icon = isFeatured ? 'fa-star' : 'fa-store';
-    const inner = `
-        <span class="ad-badge">${isFeatured ? 'Destaque' : 'Anúncio'}</span>
-        <i class="fas ${icon} ad-icon"></i>
-        <h4>${escapeHtml(sponsor.title)}</h4>
-        <p>${escapeHtml(sponsor.description)}</p>
-        ${sponsor.link_url ? `<span class="btn-ad">Saiba mais</span>` : ''}
-    `;
+// Slot "Destaque" — o banner principal do hero. Um único patrocínio em
+// destaque, se existir; senão mantém o convite de venda original.
+function renderHeroBanner() {
+    const container = $('#hero-banner-content');
+    if (!container) return;
 
-    const cardClass = `ad-card ${isFeatured ? 'ad-featured' : ''}`;
+    const featuredSponsor = sponsors.find(s => s.style === 'featured');
 
-    if (sponsor.link_url) {
-        return `
-            <a class="${cardClass} sponsor-link" data-sponsor-id="${sponsor.id}" href="${escapeHtml(sponsor.link_url)}" target="_blank" rel="noopener sponsored" style="text-decoration:none; color:inherit;">
-                <div class="ad-content">${inner}</div>
-            </a>
+    if (!featuredSponsor) {
+        container.innerHTML = `
+            <span class="banner-tag">🎵 Parcerias</span>
+            <h3>Anuncie no AulaPerto</h3>
+            <p>Conecte-se com milhares de alunos</p>
+            <a href="mailto:parcerias@aulaperto.co.mz" class="btn-banner">Saiba mais</a>
         `;
+        return;
     }
 
-    return `
-        <div class="${cardClass}">
-            <div class="ad-content">${inner}</div>
-        </div>
+    const cta = featuredSponsor.link_url
+        ? `<a href="${escapeHtml(featuredSponsor.link_url)}" target="_blank" rel="noopener sponsored" class="btn-banner sponsor-link" data-sponsor-id="${featuredSponsor.id}">Saiba mais</a>`
+        : '';
+
+    container.innerHTML = `
+        <span class="banner-tag">🎵 Patrocinado</span>
+        <h3>${escapeHtml(featuredSponsor.title)}</h3>
+        <p>${escapeHtml(featuredSponsor.description)}</p>
+        ${cta}
     `;
 }
 
-// Quando não há patrocinadores pagos, mostra um convite real em vez de
-// um anúncio falso — vira o espaço vazio num pitch de vendas.
-function renderSponsorCTA() {
-    return `
-        <div class="ad-card ad-featured">
-            <div class="ad-content">
-                <span class="ad-badge">Espaço Disponível</span>
-                <i class="fas fa-bullhorn ad-icon"></i>
-                <h4>Anuncie aqui</h4>
-                <p>Alcance alunos de música em todo Moçambique</p>
-                <a href="mailto:parcerias@aulaperto.co.mz" class="btn-ad">Contactar</a>
-            </div>
-        </div>
-    `;
+// Slot "Padrão" — faixa fina por baixo da pesquisa. Fica invisível se não
+// houver nenhum patrocínio padrão ativo, para manter o site limpo.
+function renderSponsorStrip() {
+    const section = $('#sponsor-strip-section');
+    const container = $('#sponsor-strip');
+    if (!section || !container) return;
+
+    const standardSponsors = sponsors.filter(s => s.style === 'standard');
+
+    if (standardSponsors.length === 0) {
+        section.style.display = 'none';
+        container.innerHTML = '';
+        return;
+    }
+
+    section.style.display = 'block';
+    container.innerHTML = standardSponsors.map(s => {
+        const inner = `
+            <i class="fas fa-store"></i>
+            <span>
+                <span class="sponsor-chip-label">Anúncio</span><br />
+                <strong>${escapeHtml(s.title)}</strong>
+            </span>
+        `;
+        if (s.link_url) {
+            return `<a class="sponsor-chip sponsor-link" data-sponsor-id="${s.id}" href="${escapeHtml(s.link_url)}" target="_blank" rel="noopener sponsored" title="${escapeHtml(s.description)}">${inner}</a>`;
+        }
+        return `<div class="sponsor-chip" title="${escapeHtml(s.description)}">${inner}</div>`;
+    }).join('');
 }
 
 function renderTeachers() {
@@ -359,24 +376,9 @@ function renderTeachers() {
         return;
     }
     
-    // Intercalar anúncios (patrocínios reais, com convite de venda quando vazio)
-    let html = '';
-    const adPositions = [3, 7];
-    let sponsorCursor = 0;
-
-    const nextAdCard = () => {
-        if (sponsors.length === 0) return renderSponsorCTA();
-        const sponsor = sponsors[sponsorCursor % sponsors.length];
-        sponsorCursor++;
-        return renderSponsorCard(sponsor);
-    };
-
-    filtered.forEach((p, index) => {
-        if (adPositions.includes(index)) {
-            html += nextAdCard();
-        }
-        html += renderTeacherCard(p);
-    });
+    // Grelha 100% limpa — só professores. Patrocínios vivem no banner
+    // Destaque (topo) e na faixa Padrão (acima desta lista), não aqui.
+    const html = filtered.map(p => renderTeacherCard(p)).join('');
     
     $('#results-grid').innerHTML = html;
 }
@@ -527,8 +529,9 @@ $('#results-grid').addEventListener('click', (e) => {
     }
 });
 
-// Track de cliques em patrocínios — não bloqueia a navegação (abre em nova aba)
-$('#results-grid').addEventListener('click', (e) => {
+// Track de cliques em patrocínios (banner Destaque + faixa Padrão) —
+// não bloqueia a navegação, já que os links abrem em nova aba.
+document.addEventListener('click', (e) => {
     const link = e.target.closest('.sponsor-link');
     if (link && link.dataset.sponsorId) {
         supabaseClient.rpc('registar_click_patrocinio', { p_sponsor_id: link.dataset.sponsorId })
@@ -783,6 +786,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     populateSelects();
     await carregarLocalizacoes();
     await carregarSponsors();
+    renderHeroBanner();
+    renderSponsorStrip();
     await carregarProfessores();
     
     // Event listeners de filtros
