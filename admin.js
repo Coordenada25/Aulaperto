@@ -392,15 +392,31 @@ async function carregarSponsorsAdmin() {
 
         if (error) throw error;
 
+        // Contagens de cliques (não bloqueia a tabela principal se falhar)
+        let cliquesPorSponsor = {};
+        try {
+            const { data: stats, error: statsError } = await supabaseClient
+                .from('sponsor_click_stats')
+                .select('*');
+            if (statsError) throw statsError;
+            (stats || []).forEach(s => { cliquesPorSponsor[s.sponsor_id] = s; });
+        } catch (statsErr) {
+            console.error('Erro ao carregar estatísticas de cliques:', statsErr);
+        }
+
         const tbody = $('#sponsors-list');
         if (!tbody) return;
 
         if (!data || data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#94A3B8; padding:20px;">Nenhum patrocínio criado ainda.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94A3B8; padding:20px;">Nenhum patrocínio criado ainda.</td></tr>`;
             return;
         }
 
-        tbody.innerHTML = data.map(s => `
+        tbody.innerHTML = data.map(s => {
+            const stats = cliquesPorSponsor[s.id];
+            const clicks7d = stats ? stats.clicks_7d : 0;
+            const clicksTotal = stats ? stats.total_clicks : 0;
+            return `
             <tr>
                 <td>
                     <strong>${escapeHtml(s.title)}</strong>
@@ -408,6 +424,12 @@ async function carregarSponsorsAdmin() {
                     <small style="color:#64748B;">${escapeHtml(s.description)}</small>
                 </td>
                 <td>${s.style === 'featured' ? 'Destaque' : 'Padrão'}</td>
+                <td>
+                    ${s.link_url
+                        ? `<strong>${clicks7d}</strong> <span style="color:#94A3B8;">/ ${clicksTotal}</span>`
+                        : `<span style="color:#94A3B8;" title="Sem link, não é possível clicar">—</span>`
+                    }
+                </td>
                 <td>
                     ${s.active
                         ? `<span class="badge-status active">Ativo</span>`
@@ -425,7 +447,8 @@ async function carregarSponsorsAdmin() {
                     </div>
                 </td>
             </tr>
-        `).join('');
+        `;
+        }).join('');
 
     } catch (err) {
         console.error('Erro ao carregar patrocínios:', err);
