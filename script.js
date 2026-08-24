@@ -120,6 +120,22 @@ function limparErrosFormulario(form) {
     form.querySelectorAll('.error-text').forEach(e => e.remove());
 }
 
+// Link partilhável do perfil individual de um professor, resolvido
+// corretamente independentemente da pasta onde o site está hospedado.
+function linkPerfilProfessor(slug) {
+    return new URL(`professor.html?p=${encodeURIComponent(slug)}`, window.location.href).href;
+}
+
+async function copiarLink(url) {
+    try {
+        await navigator.clipboard.writeText(url);
+        showToast('Link copiado! Já podes partilhar no WhatsApp ou Facebook.', 'success');
+    } catch (err) {
+        console.error('Erro ao copiar link:', err);
+        showToast(`Não foi possível copiar automaticamente. Link: ${url}`, 'info');
+    }
+}
+
 // ============================================
 // UPLOAD DE FOTO
 // ============================================
@@ -264,6 +280,15 @@ function renderTeacherCard(p) {
                     <i class="fas fa-paper-plane"></i> Pedir Aula
                 </button>
             </div>
+            ${p.slug ? `
+            <div class="card-links">
+                <a class="card-link-profile" href="professor.html?p=${encodeURIComponent(p.slug)}" target="_blank" rel="noopener">
+                    <i class="fas fa-id-badge"></i> Ver perfil completo
+                </a>
+                <button class="btn-share-profile" data-slug="${escapeHtml(p.slug)}" title="Copiar link do perfil para partilhar">
+                    <i class="fas fa-share-nodes"></i>
+                </button>
+            </div>` : ''}
         </div>
     `;
 }
@@ -417,7 +442,7 @@ async function carregarProfessores() {
     try {
         const { data, error } = await supabaseClient
             .from('professors')
-            .select('id, name, neighborhood, province, instruments, price, bio, experience, rating, total_reviews, photo_url, featured')
+            .select('id, slug, name, neighborhood, province, instruments, price, bio, experience, rating, total_reviews, photo_url, featured')
             .eq('status', 'approved')
             .order('featured', { ascending: false })
             .order('created_at', { ascending: false });
@@ -426,6 +451,7 @@ async function carregarProfessores() {
         
         professores = data.map(p => ({
             id: p.id,
+            slug: p.slug,
             nome: p.name,
             bairro: p.neighborhood,
             provincia: p.province || 'Maputo Cidade',
@@ -521,8 +547,14 @@ function fecharModal() {
     }
 }
 
-// Event Delegation para botões "Pedir Aula"
+// Event Delegation para botões "Pedir Aula" e "Partilhar Perfil"
 $('#results-grid').addEventListener('click', (e) => {
+    const shareBtn = e.target.closest('.btn-share-profile');
+    if (shareBtn) {
+        const slug = shareBtn.dataset.slug;
+        if (slug) copiarLink(linkPerfilProfessor(slug));
+        return;
+    }
     const btn = e.target.closest('.btn-pedir-aula');
     if (btn) {
         abrirModalContacto(btn.dataset.nome, btn.dataset.instrumentos);
@@ -697,7 +729,7 @@ $('#teacher-form').addEventListener('submit', async (e) => {
             neighborhood: bairro
         }]).select();
         
-        // Salvar professor
+        // Salvar professor (o "slug" é gerado automaticamente pela base de dados)
         const { error } = await supabaseClient.from('professors').insert([{
             name: nome,
             province: provincia,
