@@ -1,0 +1,342 @@
+// ============================================
+// CONFIGURAÇÃO
+// ============================================
+const SUPABASE_URL = "https://zxxwxwtsolbnyzbrabwp.supabase.co";
+const SUPABASE_KEY = "sb_publishable_x0Ehx6SckG0JHXqdvOusXw_5LG12KPm";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const INSTRUMENTOS = [
+    "Piano", "Guitarra", "Violão", "Bateria", "Canto",
+    "Teclado", "Saxofone", "Violino", "Baixo", "Ukulele"
+];
+
+const $ = (s) => document.querySelector(s);
+let professorAtual = null;
+
+// ============================================
+// UTILITÁRIOS (mesmos do script.js principal)
+// ============================================
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function showToast(mensagem, tipo = 'info') {
+    const container = $('#toast-container');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${tipo}`;
+    toast.innerHTML = `
+        <span>${escapeHtml(mensagem)}</span>
+        <button style="background:none;border:none;cursor:pointer;color:inherit;font-size:16px;" onclick="this.parentElement.remove()">&times;</button>
+    `;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
+function validarTelefoneMZ(numero) {
+    const limpo = numero.replace(/\D/g, '');
+    return /^(?:258)?(8[234567]\d{7})$/.test(limpo);
+}
+
+function formatarTelefoneMZ(numero) {
+    const limpo = numero.replace(/\D/g, '');
+    return limpo.startsWith('258') ? limpo : '258' + limpo;
+}
+
+function initials(name) {
+    if (!name) return 'P';
+    return name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+}
+
+function getInitialsColor(name) {
+    const colors = ['#2563EB', '#1D4ED8', '#0284C7', '#7C3AED', '#4F46E5'];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
+}
+
+function renderStars(rating) {
+    const full = Math.floor(rating || 0);
+    let stars = '';
+    for (let i = 0; i < full; i++) stars += '⭐';
+    return stars;
+}
+
+function setButtonLoading(btn, isLoading, originalText) {
+    if (isLoading) {
+        btn.classList.add('btn-loading');
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner"></span> Processando...`;
+    } else {
+        btn.classList.remove('btn-loading');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+function mostrarErroCampo(elementId, mensagem) {
+    const el = $(elementId);
+    if (!el) return;
+    el.classList.add('input-error');
+    let errEl = el.parentNode.querySelector('.error-text');
+    if (!errEl) {
+        errEl = document.createElement('small');
+        errEl.className = 'error-text';
+        el.parentNode.appendChild(errEl);
+    }
+    errEl.textContent = mensagem;
+}
+
+function limparErrosFormulario(form) {
+    if (!form) return;
+    form.querySelectorAll('.input-error').forEach(e => e.classList.remove('input-error'));
+    form.querySelectorAll('.error-text').forEach(e => e.remove());
+}
+
+async function copiarLink(url) {
+    try {
+        await navigator.clipboard.writeText(url);
+        showToast('Link copiado! Já podes partilhar no WhatsApp ou Facebook.', 'success');
+    } catch (err) {
+        console.error('Erro ao copiar link:', err);
+        showToast(`Não foi possível copiar automaticamente. Link: ${url}`, 'info');
+    }
+}
+
+// ============================================
+// CARREGAR PERFIL PELO SLUG NA URL
+// ============================================
+function getSlugFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return (params.get('p') || '').trim();
+}
+
+function renderNaoEncontrado() {
+    $('#profile-content').innerHTML = `
+        <div class="profile-error">
+            <i class="fas fa-user-slash"></i>
+            <h2>Professor não encontrado</h2>
+            <p>Este perfil não existe, foi removido, ou ainda está a aguardar aprovação.</p>
+            <a href="index.html" class="btn-primary"><i class="fas fa-search"></i> Ver todos os professores</a>
+        </div>
+    `;
+}
+
+async function carregarPerfil() {
+    const slug = getSlugFromUrl();
+    if (!slug) {
+        renderNaoEncontrado();
+        return;
+    }
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('professors')
+            .select('id, slug, name, neighborhood, province, instruments, price, bio, experience, rating, total_reviews, photo_url, featured, whatsapp')
+            .eq('slug', slug)
+            .eq('status', 'approved')
+            .maybeSingle();
+
+        if (error) throw error;
+        if (!data) {
+            renderNaoEncontrado();
+            return;
+        }
+
+        professorAtual = data;
+        renderPerfil(data);
+
+        // Ajusta título e descrição da aba do navegador para este professor
+        document.title = `${data.name} - Professor de ${(data.instruments || [])[0] || 'Música'} | AulaPerto`;
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) {
+            metaDesc.setAttribute('content', `${data.name} ensina ${(data.instruments || []).join(', ')} em ${escapeHtml(data.neighborhood || '')}, ${escapeHtml(data.province || '')}. Contacta via AulaPerto.`);
+        }
+    } catch (err) {
+        console.error('Erro ao carregar perfil:', err);
+        renderNaoEncontrado();
+    }
+}
+
+function renderPerfil(p) {
+    const temAvaliacoes = p.total_reviews && p.total_reviews > 0 && p.rating;
+    const ratingHTML = temAvaliacoes
+        ? `<div class="card-rating">${renderStars(p.rating)} ${Number(p.rating).toFixed(1)} <span>(${p.total_reviews})</span></div>`
+        : `<div class="card-rating"><span class="badge-new"><i class="fas fa-sparkles"></i> Novo no AulaPerto</span></div>`;
+
+    const featuredBadge = p.featured
+        ? `<span class="badge badge-featured"><i class="fas fa-star"></i> Destaque</span>`
+        : '';
+
+    const instrumentos = p.instruments || [];
+    const linkAtual = window.location.href;
+
+    $('#profile-content').innerHTML = `
+        <a href="index.html" class="profile-back-link"><i class="fas fa-arrow-left"></i> Voltar à pesquisa</a>
+        <div class="profile-card">
+            <div class="profile-top">
+                ${p.photo_url
+                    ? `<img src="${escapeHtml(p.photo_url)}" alt="${escapeHtml(p.name)}" class="profile-avatar-lg" style="object-fit:cover;" />`
+                    : `<div class="profile-avatar-lg" style="background:${getInitialsColor(p.name)}">${initials(p.name)}</div>`
+                }
+                <div class="profile-info">
+                    <div class="card-name" style="font-size:22px;">
+                        ${escapeHtml(p.name)}
+                        ${featuredBadge}
+                        <span class="badge badge-gold"><i class="fas fa-check-circle"></i> Aprovado</span>
+                    </div>
+                    ${ratingHTML}
+                    <div class="card-experience"><i class="fas fa-briefcase"></i> ${p.experience || 1} ${p.experience === 1 ? 'ano' : 'anos'} de experiência</div>
+                    <div class="card-location"><i class="fas fa-map-pin"></i> ${escapeHtml(p.neighborhood || '')}, ${escapeHtml(p.province || '')}</div>
+                </div>
+            </div>
+
+            <div class="card-tags profile-tags">
+                ${instrumentos.map(i => `<span class="card-tag card-tag-instrument">${escapeHtml(i)}</span>`).join('')}
+            </div>
+
+            <p class="card-bio profile-bio">${escapeHtml(p.bio) || 'Professor particular de música disponível para aulas.'}</p>
+
+            <div class="profile-footer">
+                <div class="card-price">${p.price} MT <span>/ aula</span></div>
+                <button class="btn-whatsapp btn-pedir-aula-perfil">
+                    <i class="fas fa-paper-plane"></i> Pedir Aula
+                </button>
+            </div>
+
+            <div class="profile-actions">
+                <span class="profile-actions-label"><i class="fas fa-share-nodes"></i> Partilhar este perfil</span>
+                <div class="profile-actions-buttons">
+                    <button class="btn-copy-link" id="btn-copiar-link">
+                        <i class="fas fa-link"></i> Copiar Link
+                    </button>
+                    <a class="btn-whatsapp-share" id="btn-partilhar-whatsapp" target="_blank" rel="noopener">
+                        <i class="fab fa-whatsapp"></i> Partilhar no WhatsApp
+                    </a>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Ligar ações depois de renderizar
+    $('.btn-pedir-aula-perfil').addEventListener('click', () => abrirModalContacto(p.name));
+    $('#btn-copiar-link').addEventListener('click', () => copiarLink(linkAtual));
+
+    const textoPartilha = encodeURIComponent(`Encontrei o(a) professor(a) ${p.name} no AulaPerto: ${linkAtual}`);
+    $('#btn-partilhar-whatsapp').href = `https://wa.me/?text=${textoPartilha}`;
+}
+
+// ============================================
+// MODAL DE CONTACTO (Pedir Aula)
+// ============================================
+function abrirModalContacto(nome) {
+    $('#modal-teacher-subtitle').textContent = `Solicitar contacto com ${nome}`;
+    $('#lead-teacher-name').value = nome;
+
+    const lInstr = $('#l-instrumento');
+    lInstr.innerHTML = '<option value="">Selecione o instrumento...</option>';
+    INSTRUMENTOS.forEach(i => {
+        lInstr.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(i)}">${escapeHtml(i)}</option>`);
+    });
+
+    $('#modal-contacto').style.display = 'flex';
+    $('#l-nome').focus();
+}
+
+function fecharModal() {
+    $('#modal-contacto').style.display = 'none';
+    const formLead = $('#form-lead');
+    if (formLead) {
+        formLead.reset();
+        limparErrosFormulario(formLead);
+    }
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && $('#modal-contacto').style.display === 'flex') {
+        fecharModal();
+    }
+});
+
+$('#modal-contacto').addEventListener('click', (e) => {
+    if (e.target.id === 'modal-contacto') fecharModal();
+});
+
+// ============================================
+// SUBMETER SOLICITAÇÃO (LEADS)
+// ============================================
+$('#form-lead').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const btnSubmit = form.querySelector('button[type="submit"]');
+    const originalBtnContent = btnSubmit.innerHTML;
+
+    limparErrosFormulario(form);
+
+    // Honeypot
+    if ($('#l-website') && $('#l-website').value.trim() !== '') {
+        fecharModal();
+        showToast('Obrigado! Pedido registado.', 'success');
+        return;
+    }
+
+    const alunoNome = $('#l-nome').value.trim();
+    const rawWhatsapp = $('#l-whatsapp').value.trim();
+    const instrumento = $('#l-instrumento').value;
+    const professorNome = $('#lead-teacher-name').value;
+
+    let temErro = false;
+
+    if (alunoNome.length < 3) {
+        mostrarErroCampo('#l-nome', 'Insira o seu nome completo.');
+        temErro = true;
+    }
+    if (!validarTelefoneMZ(rawWhatsapp)) {
+        mostrarErroCampo('#l-whatsapp', 'Número inválido (ex: 841234567).');
+        temErro = true;
+    }
+    if (!instrumento) {
+        mostrarErroCampo('#l-instrumento', 'Selecione o instrumento.');
+        temErro = true;
+    }
+    if (temErro) return;
+
+    setButtonLoading(btnSubmit, true);
+    const alunoWhatsapp = formatarTelefoneMZ(rawWhatsapp);
+
+    try {
+        const { error } = await supabaseClient.from('leads').insert([{
+            student_name: alunoNome,
+            student_whatsapp: alunoWhatsapp,
+            teacher_name: professorNome,
+            instrument: instrumento,
+            status: 'pending'
+        }]);
+        if (error) throw error;
+
+        fecharModal();
+        showToast(`Obrigado, ${alunoNome}! Pedido registado.`, 'success');
+    } catch (err) {
+        console.error('Erro:', err);
+        showToast('Erro ao enviar pedido. Tenta novamente.', 'error');
+    } finally {
+        setButtonLoading(btnSubmit, false, originalBtnContent);
+    }
+});
+
+// ============================================
+// INICIALIZAÇÃO
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+    carregarPerfil();
+});
