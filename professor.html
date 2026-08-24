@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-MZ">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Professor - AulaPerto</title>
+    <meta name="description" content="Perfil de professor de música no AulaPerto, Moçambique." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="header">
+    <div class="container header-container">
+        <div class="logo">
+            <a href="index.html" aria-label="AulaPerto - Página Inicial">
+                <div class="logo-icon">♫</div>
+                <div>
+                    <span class="logo-text">AulaPerto</span>
+                    <span class="logo-sub">🎵 Professores de música em Moçambique</span>
+                </div>
+            </a>
+        </div>
+        <nav class="nav">
+            <a href="index.html" class="nav-btn"><i class="fas fa-arrow-left"></i> Voltar à pesquisa</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <div class="container profile-page">
+        <div id="profile-content">
+            <!-- Estado de carregamento -->
+            <div class="skeleton" style="max-width:640px;margin:0 auto;">
+                <div style="display:flex;gap:14px;">
+                    <div class="skeleton-avatar" style="width:88px;height:88px;"></div>
+                    <div style="flex:1;">
+                        <div class="skeleton-line medium"></div>
+                        <div class="skeleton-line short" style="margin-top:6px;"></div>
+                    </div>
+                </div>
+                <div class="skeleton-line long"></div>
+                <div class="skeleton-line long"></div>
+                <div class="skeleton-line medium"></div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- MODAL DE SOLICITAÇÃO DE AULA -->
+<div id="modal-contacto" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <button class="modal-close" onclick="fecharModal()">&times;</button>
+        <div class="modal-header">
+            <h3><i class="fas fa-paper-plane"></i> Pedir Aula</h3>
+            <p id="modal-teacher-subtitle">Envia uma mensagem para a nossa equipa intermediar</p>
+        </div>
+        <form id="form-lead">
+            <input type="hidden" id="lead-teacher-name" />
+
+            <!-- HONEYPOT -->
+            <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
+                <label for="l-website">Não preencher este campo</label>
+                <input type="text" id="l-website" name="website" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <div class="field">
+                <label for="l-nome">O teu Nome Completo *</label>
+                <input type="text" id="l-nome" placeholder="Ex: Mário Tembe" required />
+            </div>
+            <div class="field">
+                <label for="l-whatsapp">O teu WhatsApp *</label>
+                <input type="tel" id="l-whatsapp" placeholder="Ex: 84 123 4567" required />
+            </div>
+            <div class="field">
+                <label for="l-instrumento">Instrumento Pretendido *</label>
+                <select id="l-instrumento" required>
+                    <option value="">Selecione...</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 12px;">
+                <i class="fas fa-paper-plane"></i> Confirmar e Enviar Pedido
+            </button>
+        </form>
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<footer class="footer">
+    <div class="container">
+        <div class="footer-bottom">
+            <span>© 2026 AulaPerto · Todos os direitos reservados.</span>
+            <span>Feito com ♥ em Moçambique</span>
+        </div>
+    </div>
+</footer>
+
+<script src="professor.js"></script>
+</body>
+</html>
