@@ -1095,3 +1095,211 @@ a { text-decoration: none; color: inherit; }
     .admin-table { font-size: 11px; }
     .admin-table th, .admin-table td { padding: 6px; }
 }
+
+/* ============================================
+   LINK DE PERFIL NOS CARDS DA GRELHA
+   ============================================ */
+.card-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 4px;
+}
+
+.card-link-profile {
+    flex: 1;
+    text-align: center;
+    padding: 8px 12px;
+    border-radius: var(--radius-pequeno);
+    border: 1px solid var(--cor-borda);
+    background: var(--cor-fundo);
+    color: var(--cor-texto-suave);
+    font-size: 12px;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.card-link-profile:hover {
+    border-color: var(--cor-primaria);
+    color: var(--cor-primaria);
+    background: #EFF6FF;
+}
+
+.btn-share-profile {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-pequeno);
+    border: 1px solid var(--cor-borda);
+    background: var(--cor-fundo);
+    color: var(--cor-texto-suave);
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-share-profile:hover {
+    border-color: var(--cor-primaria);
+    color: var(--cor-primaria);
+    background: #EFF6FF;
+}
+
+/* ============================================
+   PÁGINA DE PERFIL INDIVIDUAL (professor.html)
+   ============================================ */
+.profile-page {
+    max-width: 640px;
+    margin: 30px auto 60px;
+    padding: 0 20px;
+}
+
+.profile-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+    margin-bottom: 16px;
+    transition: var(--transition);
+}
+
+.profile-back-link:hover { color: var(--cor-primaria); }
+
+.profile-card {
+    background: var(--cor-card);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--radius);
+    padding: 28px;
+    box-shadow: var(--sombra-media);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.profile-top {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+}
+
+.profile-avatar-lg {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.profile-info { flex: 1; }
+
+.profile-tags { margin-top: -4px; }
+
+.profile-bio {
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+.profile-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid var(--cor-borda);
+}
+
+.profile-actions {
+    background: var(--cor-fundo);
+    border: 1px dashed #CBD5E1;
+    border-radius: var(--radius-pequeno);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.profile-actions-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--cor-texto-suave);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.profile-actions-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-copy-link, .btn-whatsapp-share {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: var(--radius-pequeno);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+    text-decoration: none;
+}
+
+.btn-copy-link {
+    background: white;
+    border: 1px solid var(--cor-borda);
+    color: var(--cor-texto);
+}
+
+.btn-copy-link:hover { border-color: var(--cor-primaria); color: var(--cor-primaria); }
+
+.btn-whatsapp-share {
+    background: #25D366;
+    color: white;
+}
+
+.btn-whatsapp-share:hover { background: #1DA851; }
+
+.profile-error {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--cor-card);
+    border: 2px dashed var(--cor-borda);
+    border-radius: var(--radius);
+}
+
+.profile-error i {
+    font-size: 40px;
+    color: #CBD5E1;
+    margin-bottom: 12px;
+}
+
+.profile-error h2 {
+    font-size: 22px;
+    margin-bottom: 8px;
+}
+
+.profile-error p {
+    color: var(--cor-texto-suave);
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 480px) {
+    .profile-top { flex-direction: column; align-items: center; text-align: center; }
+    .profile-footer { flex-direction: column; gap: 12px; align-items: stretch; text-align: center; }
+    .profile-actions-buttons { flex-direction: column; }
+    .card-link-profile, .btn-share-profile { font-size: 11px; }
+}
