@@ -142,7 +142,7 @@ async function carregarPerfil() {
     try {
         const { data, error } = await supabaseClient
             .from('professors')
-            .select('id, slug, name, neighborhood, province, instruments, price, bio, experience, rating, total_reviews, photo_url, featured, whatsapp')
+            .select('id, slug, name, neighborhood, province, instruments, price, bio, course_program, experience, rating, total_reviews, photo_url, featured, whatsapp')
             .eq('slug', slug)
             .eq('status', 'approved')
             .maybeSingle();
@@ -207,6 +207,12 @@ function renderPerfil(p) {
 
             <p class="card-bio profile-bio">${escapeHtml(p.bio) || 'Professor particular de música disponível para aulas.'}</p>
 
+            ${p.course_program ? `
+            <div class="profile-programa">
+                <span class="profile-programa-label"><i class="fas fa-list-check"></i> O que vais aprender</span>
+                <p class="profile-programa-text">${escapeHtml(p.course_program)}</p>
+            </div>` : ''}
+
             <div class="profile-footer">
                 <div class="card-price">${p.price} MT <span>/ aula</span></div>
                 <button class="btn-whatsapp btn-pedir-aula-perfil">
@@ -226,22 +232,80 @@ function renderPerfil(p) {
                 </div>
             </div>
         </div>
+        <div id="profile-sponsor-slot"></div>
     `;
 
     // Ligar ações depois de renderizar
-    $('.btn-pedir-aula-perfil').addEventListener('click', () => abrirModalContacto(p.name));
+    $('.btn-pedir-aula-perfil').addEventListener('click', () => abrirModalContacto(p.name, p.id));
     $('#btn-copiar-link').addEventListener('click', () => copiarLink(linkAtual));
 
     const textoPartilha = encodeURIComponent(`Encontrei o(a) professor(a) ${p.name} no AulaPerto: ${linkAtual}`);
     $('#btn-partilhar-whatsapp').href = `https://wa.me/?text=${textoPartilha}`;
+
+    carregarSponsorPerfil();
 }
+
+// ============================================
+// BANNER DE PATROCÍNIO (só nas páginas de perfil)
+// ============================================
+// Mostra um único anúncio (ex: loja de instrumentos) por baixo do perfil.
+// Se houver vários ativos, escolhe um à sorte para dar rotatividade entre
+// visitas — mantém o perfil do professor limpo, sem vários anúncios juntos.
+async function carregarSponsorPerfil() {
+    const slot = $('#profile-sponsor-slot');
+    if (!slot) return;
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('sponsors')
+            .select('*')
+            .eq('active', true)
+            .eq('style', 'profile');
+
+        if (error) throw error;
+        if (!data || data.length === 0) return;
+
+        const sponsor = data[Math.floor(Math.random() * data.length)];
+
+        const cta = sponsor.link_url
+            ? `<a href="${escapeHtml(sponsor.link_url)}" target="_blank" rel="noopener sponsored" class="btn-primary profile-sponsor-cta sponsor-link" data-sponsor-id="${sponsor.id}">Saiba mais</a>`
+            : '';
+
+        slot.innerHTML = `
+            <div class="profile-sponsor-banner">
+                <span class="profile-sponsor-tag">Publicidade</span>
+                <div class="profile-sponsor-body">
+                    <i class="fas fa-store profile-sponsor-icon"></i>
+                    <div>
+                        <strong>${escapeHtml(sponsor.title)}</strong>
+                        <p>${escapeHtml(sponsor.description)}</p>
+                    </div>
+                </div>
+                ${cta}
+            </div>
+        `;
+    } catch (err) {
+        console.error('Erro ao carregar patrocínio de perfil:', err);
+    }
+}
+
+// Regista o clique no anúncio, tal como acontece no site principal
+document.addEventListener('click', (e) => {
+    const link = e.target.closest('.sponsor-link');
+    if (link && link.dataset.sponsorId) {
+        supabaseClient.rpc('registar_click_patrocinio', { p_sponsor_id: link.dataset.sponsorId })
+            .then(({ error }) => { if (error) console.error('Erro ao registar clique:', error); });
+    }
+});
 
 // ============================================
 // MODAL DE CONTACTO (Pedir Aula)
 // ============================================
-function abrirModalContacto(nome) {
+function abrirModalContacto(nome, teacherId) {
     $('#modal-teacher-subtitle').textContent = `Solicitar contacto com ${nome}`;
     $('#lead-teacher-name').value = nome;
+    const idField = $('#lead-teacher-id');
+    if (idField) idField.value = teacherId || '';
 
     const lInstr = $('#l-instrumento');
     lInstr.innerHTML = '<option value="">Selecione o instrumento...</option>';
@@ -294,6 +358,7 @@ $('#form-lead').addEventListener('submit', async (e) => {
     const rawWhatsapp = $('#l-whatsapp').value.trim();
     const instrumento = $('#l-instrumento').value;
     const professorNome = $('#lead-teacher-name').value;
+    const professorIdRaw = $('#lead-teacher-id') ? $('#lead-teacher-id').value : '';
 
     let temErro = false;
 
@@ -319,6 +384,7 @@ $('#form-lead').addEventListener('submit', async (e) => {
             student_name: alunoNome,
             student_whatsapp: alunoWhatsapp,
             teacher_name: professorNome,
+            teacher_id: professorIdRaw ? Number(professorIdRaw) : null,
             instrument: instrumento,
             status: 'pending'
         }]);
