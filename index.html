@@ -20,9 +20,6 @@
 </head>
 <body>
 
-<!-- ============================================ -->
-<!-- HEADER                                       -->
-<!-- ============================================ -->
 <header class="header">
     <div class="container header-container">
         <div class="logo">
@@ -49,15 +46,10 @@
 </header>
 
 <main>
-    <!-- ============================================ -->
-    <!-- VIEW: PESQUISA DE PROFESSORES                -->
-    <!-- ============================================ -->
     <section id="view-search" class="view active">
         <div class="container">
-            <!-- HERO -->
             <div class="hero-section">
                 <div class="hero-grid">
-                    <!-- Coluna Esquerda -->
                     <div class="hero-content">
                         <div class="hero-badge">
                             <i class="fas fa-map-marker-alt"></i> 
@@ -85,7 +77,6 @@
                         </div>
                     </div>
                     
-                    <!-- Coluna Direita - Banner (slot Destaque, patrocínio real ou convite) -->
                     <div class="hero-banner">
                         <div class="banner-principal">
                             <div class="banner-content" id="hero-banner-content">
@@ -102,7 +93,6 @@
                 </div>
             </div>
 
-            <!-- PAINEL DE PESQUISA -->
             <div class="search-panel">
                 <div class="field">
                     <label for="f-provincia"><i class="fas fa-map-marker-alt"></i> Província</label>
@@ -122,42 +112,26 @@
                         <option value="">Todos os instrumentos</option>
                     </select>
                 </div>
-                <div class="field">
-                    <label for="f-preco"><i class="fas fa-coins"></i> Preço Máximo</label>
-                    <select id="f-preco">
-                        <option value="">Qualquer valor</option>
-                        <option value="400">Até 400 MT</option>
-                        <option value="600">Até 600 MT</option>
-                        <option value="800">Até 800 MT</option>
-                        <option value="1000">Até 1000 MT</option>
-                    </select>
-                </div>
                 <button id="btn-search" class="btn-primary">
                     <i class="fas fa-search"></i> Pesquisar
                 </button>
             </div>
 
-            <!-- FAIXA DE PATROCÍNIOS (slot Padrão) — só aparece se houver algum ativo -->
             <div id="sponsor-strip-section" class="sponsor-strip-section" style="display:none;">
                 <div id="sponsor-strip" class="sponsor-strip"></div>
             </div>
 
-            <!-- LISTA DE PROFESSORES -->
             <div class="teachers-section">
                 <div class="teachers-header">
-                    <h2><i class="fas fa-users"></i> Professores Aprovados</h2>
+                    <h2><i class="fas fa-users"></i> Professores</h2>
                     <span id="results-count" class="teachers-count">0 professores</span>
                 </div>
                 <div id="results-grid" class="teachers-grid">
-                    <!-- Renderizado pelo JS -->
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ============================================ -->
-    <!-- VIEW: CADASTRO DE PROFESSOR                  -->
-    <!-- ============================================ -->
     <section id="view-teach" class="view">
         <div class="container">
             <div class="teach-form">
@@ -169,7 +143,6 @@
                 </div>
 
                 <form id="teacher-form">
-                    <!-- HONEYPOT -->
                     <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
                         <label for="t-website">Não preencher este campo</label>
                         <input type="text" id="t-website" name="website" tabindex="-1" autocomplete="off" />
@@ -217,12 +190,17 @@
                             <input type="number" id="t-exp" placeholder="Ex: 5" min="1" value="1" />
                         </div>
                         <div class="field">
-                            <label for="t-foto"><i class="fas fa-camera"></i> Foto (opcional)</label>
+                            <label for="t-foto"><i class="fas fa-camera"></i> Foto (recomendado)</label>
                             <input type="file" id="t-foto" accept="image/jpeg,image/png,image/webp" />
                             <small style="color:var(--cor-texto-suave); font-size:11px; display:block; margin-top:4px;">
                                 Máx. 3MB. JPG, PNG ou WEBP.
                             </small>
                         </div>
+                    </div>
+
+                    <div class="photo-tip">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>Perfis com foto passam muito mais confiança e recebem mais pedidos de aula. Vale a pena adicionar uma!</span>
                     </div>
 
                     <div class="field">
@@ -231,8 +209,16 @@
                     </div>
 
                     <div class="field">
-                        <label for="t-bio"><i class="fas fa-pencil"></i> Apresentação / Biografia</label>
-                        <textarea id="t-bio" rows="3" placeholder="Descreve a tua experiência e método de ensino..."></textarea>
+                        <label for="t-bio"><i class="fas fa-pencil"></i> Apresentação / Biografia *</label>
+                        <textarea id="t-bio" rows="3" placeholder="Descreve a tua experiência e método de ensino..." required></textarea>
+                    </div>
+
+                    <div class="field">
+                        <label for="t-programa"><i class="fas fa-list-check"></i> O que o Aluno Vai Aprender *</label>
+                        <textarea id="t-programa" rows="4" placeholder="Ex: Módulo 1 - postura e leitura de partitura. Módulo 2 - escalas e acordes básicos. Módulo 3 - primeira música completa..." required></textarea>
+                        <small style="color:var(--cor-texto-suave); font-size:11px; display:block; margin-top:4px;">
+                            Isto aparece no teu perfil, para o aluno saber exatamente o que esperar antes de te contactar.
+                        </small>
                     </div>
 
                     <button type="submit" class="btn-submit">
@@ -243,9 +229,6 @@
         </div>
     </section>
 
-    <!-- ============================================ -->
-    <!-- VIEW: SOBRE NÓS                             -->
-    <!-- ============================================ -->
     <section id="view-about" class="view">
         <div class="container">
             <div class="about-page">
@@ -323,9 +306,6 @@
     </section>
 </main>
 
-<!-- ============================================ -->
-<!-- MODAL DE SOLICITAÇÃO DE AULA                 -->
-<!-- ============================================ -->
 <div id="modal-contacto" class="modal-overlay" style="display: none;">
     <div class="modal-content">
         <button class="modal-close" onclick="fecharModal()">&times;</button>
@@ -335,8 +315,8 @@
         </div>
         <form id="form-lead">
             <input type="hidden" id="lead-teacher-name" />
+            <input type="hidden" id="lead-teacher-id" />
             
-            <!-- HONEYPOT -->
             <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
                 <label for="l-website">Não preencher este campo</label>
                 <input type="text" id="l-website" name="website" tabindex="-1" autocomplete="off" />
@@ -363,14 +343,8 @@
     </div>
 </div>
 
-<!-- ============================================ -->
-<!-- TOASTS                                      -->
-<!-- ============================================ -->
 <div id="toast-container"></div>
 
-<!-- ============================================ -->
-<!-- FOOTER                                      -->
-<!-- ============================================ -->
 <footer class="footer">
     <div class="container">
         <div class="footer-grid">
