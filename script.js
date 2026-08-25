@@ -1,830 +1,394 @@
-// ============================================
-// CONFIGURAÇÃO
-// ============================================
-const SUPABASE_URL = "https://zxxwxwtsolbnyzbrabwp.supabase.co";
-const SUPABASE_KEY = "sb_publishable_x0Ehx6SckG0JHXqdvOusXw_5LG12KPm";
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// CONSTANTES
-const PROVINCIAS = [
-    "Cabo Delgado", "Gaza", "Inhambane", "Manica",
-    "Maputo Cidade", "Maputo Província", "Nampula",
-    "Niassa", "Sofala", "Tete", "Zambézia"
-];
-
-const INSTRUMENTOS = [
-    "Piano", "Guitarra", "Violão", "Bateria", "Canto",
-    "Teclado", "Saxofone", "Violino", "Baixo", "Ukulele"
-];
-
-const CACHE_KEY = "aulaperto_teachers_cache";
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
-
-let professores = [];
-let allLocations = [];
-let sponsors = [];
-
-// DOM Helpers
-const $ = (s) => document.querySelector(s);
-const $$ = (s) => document.querySelectorAll(s);
-
-// ============================================
-// UTILITÁRIOS
-// ============================================
-function escapeHtml(str) {
-    if (str === null || str === undefined) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-
-function showToast(mensagem, tipo = 'info') {
-    const container = $('#toast-container');
-    if (!container) return;
+<!DOCTYPE html>
+<html lang="pt-MZ">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AulaPerto - Professores de Música em Moçambique</title>
     
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${tipo}`;
-    toast.innerHTML = `
-        <span>${escapeHtml(mensagem)}</span>
-        <button style="background:none;border:none;cursor:pointer;color:inherit;font-size:16px;" onclick="this.parentElement.remove()">&times;</button>
-    `;
-    container.appendChild(toast);
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(100%)';
-        setTimeout(() => toast.remove(), 300);
-    }, 4000);
-}
-
-function validarTelefoneMZ(numero) {
-    const limpo = numero.replace(/\D/g, '');
-    return /^(?:258)?(8[234567]\d{7})$/.test(limpo);
-}
-
-function formatarTelefoneMZ(numero) {
-    const limpo = numero.replace(/\D/g, '');
-    return limpo.startsWith('258') ? limpo : '258' + limpo;
-}
-
-function initials(name) {
-    if (!name) return 'P';
-    return name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
-}
-
-function getInitialsColor(name) {
-    const colors = ['#2563EB', '#1D4ED8', '#0284C7', '#7C3AED', '#4F46E5'];
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    return colors[Math.abs(hash) % colors.length];
-}
-
-function renderStars(rating) {
-    const full = Math.floor(rating || 0);
-    let stars = '';
-    for (let i = 0; i < full; i++) stars += '⭐';
-    return stars;
-}
-
-function setButtonLoading(btn, isLoading, originalText) {
-    if (isLoading) {
-        btn.classList.add('btn-loading');
-        btn.disabled = true;
-        btn.innerHTML = `<span class="spinner"></span> Processando...`;
-    } else {
-        btn.classList.remove('btn-loading');
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-    }
-}
-
-function mostrarErroCampo(elementId, mensagem) {
-    const el = $(elementId);
-    if (!el) return;
-    el.classList.add('input-error');
-    let errEl = el.parentNode.querySelector('.error-text');
-    if (!errEl) {
-        errEl = document.createElement('small');
-        errEl.className = 'error-text';
-        el.parentNode.appendChild(errEl);
-    }
-    errEl.textContent = mensagem;
-}
-
-function limparErrosFormulario(form) {
-    if (!form) return;
-    form.querySelectorAll('.input-error').forEach(e => e.classList.remove('input-error'));
-    form.querySelectorAll('.error-text').forEach(e => e.remove());
-}
-
-// Link partilhável do perfil individual de um professor, resolvido
-// corretamente independentemente da pasta onde o site está hospedado.
-function linkPerfilProfessor(slug) {
-    return new URL(`professor.html?p=${encodeURIComponent(slug)}`, window.location.href).href;
-}
-
-async function copiarLink(url) {
-    try {
-        await navigator.clipboard.writeText(url);
-        showToast('Link copiado! Já podes partilhar no WhatsApp ou Facebook.', 'success');
-    } catch (err) {
-        console.error('Erro ao copiar link:', err);
-        showToast(`Não foi possível copiar automaticamente. Link: ${url}`, 'info');
-    }
-}
-
-// ============================================
-// UPLOAD DE FOTO
-// ============================================
-const FOTO_MAX_BYTES = 3 * 1024 * 1024;
-const FOTO_TIPOS_ACEITES = ['image/jpeg', 'image/png', 'image/webp'];
-
-async function uploadFotoProfessor(file) {
-    if (!file) return null;
-    if (!FOTO_TIPOS_ACEITES.includes(file.type)) {
-        throw new Error('Formato de imagem inválido. Usa JPG, PNG ou WEBP.');
-    }
-    if (file.size > FOTO_MAX_BYTES) {
-        throw new Error('A imagem é demasiado grande (máx. 3MB).');
-    }
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     
-    const ext = file.name.split('.').pop().toLowerCase();
-    const nomeUnico = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    <!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     
-    const { error: uploadError } = await supabaseClient
-        .storage
-        .from('professor-photos')
-        .upload(nomeUnico, file, { cacheControl: '3600', upsert: false });
-    
-    if (uploadError) throw uploadError;
-    
-    const { data } = supabaseClient
-        .storage
-        .from('professor-photos')
-        .getPublicUrl(nomeUnico);
-    
-    return data.publicUrl;
-}
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
 
-// ============================================
-// CARREGAR LOCALIZAÇÕES
-// ============================================
-async function carregarLocalizacoes() {
-    const { data, error } = await supabaseClient
-        .from('locations')
-        .select('province, neighborhood')
-        .order('province')
-        .order('neighborhood');
-    
-    if (error) return [];
-    allLocations = data || [];
-    return allLocations;
-}
-
-async function getBairrosPorProvincia(provincia) {
-    if (!provincia) return allLocations;
-    return allLocations.filter(l => l.province === provincia);
-}
-
-// ============================================
-// POPULAR SELECTS
-// ============================================
-function populateSelects() {
-    // Províncias
-    const fProvincia = $('#f-provincia');
-    const tProvincia = $('#t-provincia');
-    
-    PROVINCIAS.forEach(p => {
-        fProvincia.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`);
-        tProvincia.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`);
-    });
-    
-    // Instrumentos
-    const fInstr = $('#f-instr');
-    const lInstr = $('#l-instrumento');
-    const tInstrumentos = $('#t-instrumentos');
-    
-    INSTRUMENTOS.forEach(i => {
-        fInstr.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(i)}">${escapeHtml(i)}</option>`);
-        lInstr.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(i)}">${escapeHtml(i)}</option>`);
-        
-        const chip = document.createElement('div');
-        chip.className = 'chip';
-        chip.textContent = i;
-        chip.dataset.value = i;
-        chip.addEventListener('click', () => chip.classList.toggle('active'));
-        tInstrumentos.appendChild(chip);
-    });
-}
-
-// ============================================
-// RENDERIZAR PROFESSORES
-// ============================================
-function renderSkeletons() {
-    const grid = $('#results-grid');
-    grid.innerHTML = Array(3).fill(`
-        <div class="skeleton">
-            <div style="display:flex;gap:14px;">
-                <div class="skeleton-avatar"></div>
-                <div style="flex:1;">
-                    <div class="skeleton-line medium"></div>
-                    <div class="skeleton-line short" style="margin-top:6px;"></div>
+<header class="header">
+    <div class="container header-container">
+        <div class="logo">
+            <a href="#" aria-label="AulaPerto - Página Inicial">
+                <div class="logo-icon">♫</div>
+                <div>
+                    <span class="logo-text">AulaPerto</span>
+                    <span class="logo-sub">🎵 Professores de música em Moçambique</span>
                 </div>
-            </div>
-            <div class="skeleton-line long"></div>
-            <div class="skeleton-line medium"></div>
+            </a>
         </div>
-    `).join('');
-}
+        <nav class="nav">
+            <button class="nav-btn active" data-view="search">
+                <i class="fas fa-search"></i> Encontrar
+            </button>
+            <button class="nav-btn" data-view="teach">
+                <i class="fas fa-chalkboard-teacher"></i> Sou Professor
+            </button>
+            <button class="nav-btn" data-view="about" id="btn-about">
+                <i class="fas fa-info-circle"></i> Sobre
+            </button>
+        </nav>
+    </div>
+</header>
 
-function renderTeacherCard(p) {
-    const temAvaliacoes = p.total_avaliacoes && p.total_avaliacoes > 0 && p.avaliacao;
-    const ratingHTML = temAvaliacoes
-        ? `<div class="card-rating">${renderStars(p.avaliacao)} ${p.avaliacao.toFixed(1)} <span>(${p.total_avaliacoes})</span></div>`
-        : `<div class="card-rating"><span class="badge-new"><i class="fas fa-sparkles"></i> Novo</span></div>`;
-
-    const featuredBadge = p.featured
-        ? `<span class="badge badge-featured"><i class="fas fa-star"></i> Destaque</span>`
-        : '';
-
-    return `
-        <div class="teacher-card ${p.featured ? 'is-featured' : ''}">
-            <div class="card-top">
-                ${p.foto
-                    ? `<img src="${escapeHtml(p.foto)}" alt="${escapeHtml(p.nome)}" class="card-avatar" style="object-fit:cover;" />`
-                    : `<div class="card-avatar" style="background: ${getInitialsColor(p.nome)}">${initials(p.nome)}</div>`
-                }
-                <div class="card-info">
-                    <div class="card-name">
-                        ${escapeHtml(p.nome)}
-                        ${featuredBadge}
-                        <span class="badge badge-gold"><i class="fas fa-check-circle"></i> Aprovado</span>
+<main>
+    <section id="view-search" class="view active">
+        <div class="container">
+            <div class="hero-section">
+                <div class="hero-grid">
+                    <div class="hero-content">
+                        <div class="hero-badge">
+                            <i class="fas fa-map-marker-alt"></i> 
+                            Moçambique 🇲🇿
+                        </div>
+                        <h1>
+                            Encontra o teu professor de música 
+                            <span class="text-gradient">perto de ti</span>
+                        </h1>
+                        <p>Aulas particulares em todo Moçambique. Conectamos alunos e professores.</p>
+                        
+                        <div class="stats">
+                            <div class="stat-item">
+                                <span id="total-teachers" class="stat-number">0</span>
+                                <span class="stat-label">Professores</span>
+                            </div>
+                            <div class="stat-item">
+                                <span id="total-provinces" class="stat-number">0</span>
+                                <span class="stat-label">Províncias</span>
+                            </div>
+                            <div class="stat-item">
+                                <span id="total-instruments" class="stat-number">0</span>
+                                <span class="stat-label">Instrumentos</span>
+                            </div>
+                        </div>
                     </div>
-                    ${ratingHTML}
-                    <div class="card-experience"><i class="fas fa-briefcase"></i> ${p.experiencia || 1} ${p.experiencia === 1 ? 'ano' : 'anos'} de exp.</div>
-                    <div class="card-location"><i class="fas fa-map-pin"></i> ${escapeHtml(p.bairro)}</div>
+                    
+                    <div class="hero-banner">
+                        <div class="banner-principal">
+                            <div class="banner-content" id="hero-banner-content">
+                                <span class="banner-tag">🎵 Parcerias</span>
+                                <h3>Anuncie no AulaPerto</h3>
+                                <p>Conecte-se com milhares de alunos</p>
+                                <a href="mailto:parcerias@aulaperto.co.mz" class="btn-banner">Saiba mais</a>
+                            </div>
+                            <div class="banner-image">
+                                <i class="fas fa-guitar"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="card-tags">
-                ${p.instrumentos.map(i => `<span class="card-tag card-tag-instrument">${escapeHtml(i)}</span>`).join('')}
-            </div>
-            <p class="card-bio">${escapeHtml(p.bio) || 'Professor particular de música disponível para aulas.'}</p>
-            <div class="card-footer">
-                <div class="card-price">${p.preco} MT <span>/ aula</span></div>
-                <button class="btn-whatsapp btn-pedir-aula"
-                    data-nome="${escapeHtml(p.nome)}"
-                    data-instrumentos="${escapeHtml(p.instrumentos.join(', '))}">
-                    <i class="fas fa-paper-plane"></i> Pedir Aula
+
+            <div class="search-panel">
+                <div class="field">
+                    <label for="f-provincia"><i class="fas fa-map-marker-alt"></i> Província</label>
+                    <select id="f-provincia">
+                        <option value="">Todas as províncias</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="f-bairro"><i class="fas fa-location-dot"></i> Bairro / Zona</label>
+                    <select id="f-bairro">
+                        <option value="">Todos os bairros</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="f-instr"><i class="fas fa-guitar"></i> Instrumento</label>
+                    <select id="f-instr">
+                        <option value="">Todos os instrumentos</option>
+                    </select>
+                </div>
+                <button id="btn-search" class="btn-primary">
+                    <i class="fas fa-search"></i> Pesquisar
                 </button>
             </div>
-            ${p.slug ? `
-            <div class="card-links">
-                <a class="card-link-profile" href="professor.html?p=${encodeURIComponent(p.slug)}" target="_blank" rel="noopener">
-                    <i class="fas fa-id-badge"></i> Ver perfil completo
-                </a>
-                <button class="btn-share-profile" data-slug="${escapeHtml(p.slug)}" title="Copiar link do perfil para partilhar">
-                    <i class="fas fa-share-nodes"></i>
-                </button>
-            </div>` : ''}
+
+            <div id="sponsor-strip-section" class="sponsor-strip-section" style="display:none;">
+                <div id="sponsor-strip" class="sponsor-strip"></div>
+            </div>
+
+            <div class="teachers-section">
+                <div class="teachers-header">
+                    <h2><i class="fas fa-users"></i> Professores</h2>
+                    <span id="results-count" class="teachers-count">0 professores</span>
+                </div>
+                <div id="results-grid" class="teachers-grid">
+                </div>
+            </div>
         </div>
-    `;
-}
+    </section>
 
-// ============================================
-// PATROCÍNIOS (ANÚNCIOS REAIS)
-// ============================================
-async function carregarSponsors() {
-    try {
-        const { data, error } = await supabaseClient
-            .from('sponsors')
-            .select('*')
-            .eq('active', true)
-            .order('display_order', { ascending: true })
-            .order('created_at', { ascending: false });
+    <section id="view-teach" class="view">
+        <div class="container">
+            <div class="teach-form">
+                <h2><i class="fas fa-music"></i> Cadastra-te como Professor</h2>
+                <p>Preenche os teus dados para seres avaliado pela nossa equipa e apareceres no site.</p>
+                
+                <div id="success-msg" class="success-message">
+                    <span id="success-text">Registo efetuado com sucesso!</span>
+                </div>
 
-        if (error) throw error;
-        sponsors = data || [];
-    } catch (err) {
-        console.error('Erro ao carregar patrocínios:', err);
-        sponsors = [];
-    }
-}
+                <form id="teacher-form">
+                    <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
+                        <label for="t-website">Não preencher este campo</label>
+                        <input type="text" id="t-website" name="website" tabindex="-1" autocomplete="off" />
+                    </div>
 
-// Slot "Destaque" — o banner principal do hero. Um único patrocínio em
-// destaque, se existir; senão mantém o convite de venda original.
-function renderHeroBanner() {
-    const container = $('#hero-banner-content');
-    if (!container) return;
+                    <div class="field">
+                        <label for="t-nome"><i class="fas fa-user"></i> Nome Completo *</label>
+                        <input type="text" id="t-nome" placeholder="Ex: Carlos Muianga" required />
+                    </div>
 
-    const featuredSponsor = sponsors.find(s => s.style === 'featured');
+                    <div class="form-row">
+                        <div class="field">
+                            <label for="t-provincia"><i class="fas fa-map-marker-alt"></i> Província *</label>
+                            <select id="t-provincia" required>
+                                <option value="">Selecione a província...</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="t-bairro"><i class="fas fa-location-dot"></i> Bairro / Zona *</label>
+                            <select id="t-bairro" required>
+                                <option value="">Selecione o bairro...</option>
+                            </select>
+                        </div>
+                    </div>
 
-    if (!featuredSponsor) {
-        container.innerHTML = `
-            <span class="banner-tag">🎵 Parcerias</span>
-            <h3>Anuncie no AulaPerto</h3>
-            <p>Conecte-se com milhares de alunos</p>
-            <a href="mailto:parcerias@aulaperto.co.mz" class="btn-banner">Saiba mais</a>
-        `;
-        return;
-    }
+                    <div class="field" id="novo-bairro-wrapper" style="display:none;">
+                        <label for="t-novo-bairro"><i class="fas fa-plus-circle"></i> Novo Bairro</label>
+                        <input type="text" id="t-novo-bairro" placeholder="Digite o nome do bairro" />
+                    </div>
 
-    const cta = featuredSponsor.link_url
-        ? `<a href="${escapeHtml(featuredSponsor.link_url)}" target="_blank" rel="noopener sponsored" class="btn-banner sponsor-link" data-sponsor-id="${featuredSponsor.id}">Saiba mais</a>`
-        : '';
+                    <div class="form-row">
+                        <div class="field">
+                            <label for="t-preco"><i class="fas fa-coins"></i> Preço por Aula (MT) *</label>
+                            <input type="number" id="t-preco" placeholder="Ex: 500" min="100" required />
+                        </div>
+                        <div class="field">
+                            <label for="t-whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp *</label>
+                            <input type="tel" id="t-whatsapp" placeholder="84 123 4567" required />
+                        </div>
+                    </div>
 
-    container.innerHTML = `
-        <span class="banner-tag">🎵 Patrocinado</span>
-        <h3>${escapeHtml(featuredSponsor.title)}</h3>
-        <p>${escapeHtml(featuredSponsor.description)}</p>
-        ${cta}
-    `;
-}
+                    <div class="form-row">
+                        <div class="field">
+                            <label for="t-exp"><i class="fas fa-briefcase"></i> Anos de Experiência</label>
+                            <input type="number" id="t-exp" placeholder="Ex: 5" min="1" value="1" />
+                        </div>
+                        <div class="field">
+                            <label for="t-foto"><i class="fas fa-camera"></i> Foto (recomendado)</label>
+                            <input type="file" id="t-foto" accept="image/jpeg,image/png,image/webp" />
+                            <small style="color:var(--cor-texto-suave); font-size:11px; display:block; margin-top:4px;">
+                                Máx. 3MB. JPG, PNG ou WEBP.
+                            </small>
+                        </div>
+                    </div>
 
-// Slot "Padrão" — faixa fina por baixo da pesquisa. Fica invisível se não
-// houver nenhum patrocínio padrão ativo, para manter o site limpo.
-function renderSponsorStrip() {
-    const section = $('#sponsor-strip-section');
-    const container = $('#sponsor-strip');
-    if (!section || !container) return;
+                    <div class="photo-tip">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>Perfis com foto passam muito mais confiança e recebem mais pedidos de aula. Vale a pena adicionar uma!</span>
+                    </div>
 
-    const standardSponsors = sponsors.filter(s => s.style === 'standard');
+                    <div class="field">
+                        <label><i class="fas fa-guitar"></i> Instrumentos que Lecionas *</label>
+                        <div id="t-instrumentos" class="chip-group"></div>
+                    </div>
 
-    if (standardSponsors.length === 0) {
-        section.style.display = 'none';
-        container.innerHTML = '';
-        return;
-    }
+                    <div class="field">
+                        <label for="t-bio"><i class="fas fa-pencil"></i> Apresentação / Biografia *</label>
+                        <textarea id="t-bio" rows="3" placeholder="Descreve a tua experiência e método de ensino..." required></textarea>
+                    </div>
 
-    section.style.display = 'block';
-    container.innerHTML = standardSponsors.map(s => {
-        const inner = `
-            <i class="fas fa-store"></i>
-            <span>
-                <span class="sponsor-chip-label">Anúncio</span><br />
-                <strong>${escapeHtml(s.title)}</strong>
-            </span>
-        `;
-        if (s.link_url) {
-            return `<a class="sponsor-chip sponsor-link" data-sponsor-id="${s.id}" href="${escapeHtml(s.link_url)}" target="_blank" rel="noopener sponsored" title="${escapeHtml(s.description)}">${inner}</a>`;
-        }
-        return `<div class="sponsor-chip" title="${escapeHtml(s.description)}">${inner}</div>`;
-    }).join('');
-}
+                    <div class="field">
+                        <label for="t-programa"><i class="fas fa-list-check"></i> O que o Aluno Vai Aprender *</label>
+                        <textarea id="t-programa" rows="4" placeholder="Ex: Módulo 1 - postura e leitura de partitura. Módulo 2 - escalas e acordes básicos. Módulo 3 - primeira música completa..." required></textarea>
+                        <small style="color:var(--cor-texto-suave); font-size:11px; display:block; margin-top:4px;">
+                            Isto aparece no teu perfil, para o aluno saber exatamente o que esperar antes de te contactar.
+                        </small>
+                    </div>
 
-function renderTeachers() {
-    const bairro = $('#f-bairro').value;
-    const provincia = $('#f-provincia').value;
-    const instr = $('#f-instr').value;
-    const maxPreco = $('#f-preco') ? Number($('#f-preco').value) : null;
-    
-    let filtered = professores.filter(p => {
-        const matchProvincia = !provincia || p.provincia === provincia;
-        const matchBairro = !bairro || p.bairro === bairro;
-        const matchInstr = !instr || p.instrumentos.includes(instr);
-        const matchPreco = !maxPreco || p.preco <= maxPreco;
-        return matchProvincia && matchBairro && matchInstr && matchPreco;
-    });
-    
-    $('#results-count').textContent = `${filtered.length} ${filtered.length === 1 ? 'professor' : 'professores'}`;
-    
-    if (filtered.length === 0) {
-        $('#results-grid').innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-music" style="font-size:32px;margin-bottom:8px;opacity:0.4;"></i><br />
-                Nenhum professor encontrado com estes filtros.<br />
-                <button class="btn-clear-filters" onclick="limparFiltros()">Limpar Filtros</button>
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-rocket"></i> Submeter para Aprovação
+                    </button>
+                </form>
             </div>
-        `;
-        return;
-    }
-    
-    // Grelha 100% limpa — só professores. Patrocínios vivem no banner
-    // Destaque (topo) e na faixa Padrão (acima desta lista), não aqui.
-    const html = filtered.map(p => renderTeacherCard(p)).join('');
-    
-    $('#results-grid').innerHTML = html;
-}
+        </div>
+    </section>
 
-function limparFiltros() {
-    $('#f-provincia').value = '';
-    $('#f-bairro').value = '';
-    $('#f-instr').value = '';
-    if ($('#f-preco')) $('#f-preco').value = '';
-    renderTeachers();
-}
+    <section id="view-about" class="view">
+        <div class="container">
+            <div class="about-page">
+                <div class="about-header">
+                    <span class="about-icon">♫</span>
+                    <h1>Sobre o AulaPerto</h1>
+                    <p>Conectando alunos e professores de música em Moçambique</p>
+                </div>
 
-// ============================================
-// CARREGAR PROFESSORES (COM CACHE)
-// ============================================
-async function carregarProfessores() {
-    renderSkeletons();
-    
-    // Verificar cache
-    const cachedData = localStorage.getItem(CACHE_KEY);
-    if (cachedData) {
-        try {
-            const { timestamp, data } = JSON.parse(cachedData);
-            if (Date.now() - timestamp < CACHE_TTL) {
-                professores = data;
-                updateStats();
-                renderTeachers();
-                return;
-            }
-        } catch (e) {
-            localStorage.removeItem(CACHE_KEY);
-        }
-    }
-    
-    // Buscar dados
-    try {
-        const { data, error } = await supabaseClient
-            .from('professors')
-            .select('id, slug, name, neighborhood, province, instruments, price, bio, experience, rating, total_reviews, photo_url, featured')
-            .eq('status', 'approved')
-            .order('featured', { ascending: false })
-            .order('created_at', { ascending: false });
-        
-        if (error) throw error;
-        
-        professores = data.map(p => ({
-            id: p.id,
-            slug: p.slug,
-            nome: p.name,
-            bairro: p.neighborhood,
-            provincia: p.province || 'Maputo Cidade',
-            instrumentos: p.instruments || [],
-            preco: p.price,
-            bio: p.bio || '',
-            experiencia: p.experience || 1,
-            avaliacao: p.rating || null,
-            total_avaliacoes: p.total_reviews || 0,
-            foto: p.photo_url || null,
-            featured: !!p.featured
-        }));
-        
-        // Guardar cache
-        localStorage.setItem(CACHE_KEY, JSON.stringify({
-            timestamp: Date.now(),
-            data: professores
-        }));
-        
-    } catch (e) {
-        console.error('Erro ao carregar professores:', e);
-        showToast('Erro ao carregar lista de professores.', 'error');
-        professores = [];
-    }
-    
-    updateStats();
-    renderTeachers();
-}
+                <div class="about-grid">
+                    <div class="about-card">
+                        <i class="fas fa-bullseye"></i>
+                        <h3>Nossa Missão</h3>
+                        <p>Democratizar o acesso ao ensino musical em Moçambique, conectando alunos a professores qualificados em todo o país.</p>
+                    </div>
+                    <div class="about-card">
+                        <i class="fas fa-handshake"></i>
+                        <h3>Como Funciona</h3>
+                        <ol>
+                            <li>Professor <strong>cadastra-se</strong> gratuitamente</li>
+                            <li>Equipa <strong>verifica</strong> o perfil</li>
+                            <li>Alunos <strong>encontram</strong> professores</li>
+                            <li>Agendam aulas <strong>diretamente</strong> via WhatsApp</li>
+                        </ol>
+                    </div>
+                    <div class="about-card">
+                        <i class="fas fa-heart"></i>
+                        <h3>Nossos Valores</h3>
+                        <ul>
+                            <li>Qualidade no ensino</li>
+                            <li>Transparência nas relações</li>
+                            <li>Acessibilidade para todos</li>
+                            <li>Valorização dos professores</li>
+                        </ul>
+                    </div>
+                </div>
 
-function updateStats() {
-    $('#total-teachers').textContent = professores.length;
-    
-    const provincias = new Set();
-    const allInstr = new Set();
-    professores.forEach(p => {
-        if (p.provincia) provincias.add(p.provincia);
-        p.instrumentos.forEach(i => allInstr.add(i));
-    });
-    
-    $('#total-provinces').textContent = provincias.size;
-    $('#total-instruments').textContent = allInstr.size;
-    
-    // Atualizar about
-    const aboutTeachers = $('#about-teachers');
-    const aboutProvinces = $('#about-provinces');
-    const aboutInstruments = $('#about-instruments');
-    if (aboutTeachers) aboutTeachers.textContent = professores.length;
-    if (aboutProvinces) aboutProvinces.textContent = provincias.size;
-    if (aboutInstruments) aboutInstruments.textContent = allInstr.size;
-}
+                <div class="about-stats-box">
+                    <h3>Impacto</h3>
+                    <div class="about-stats-grid">
+                        <div class="about-stat">
+                            <span class="about-stat-number" id="about-teachers">0</span>
+                            <span>Professores</span>
+                        </div>
+                        <div class="about-stat">
+                            <span class="about-stat-number" id="about-provinces">0</span>
+                            <span>Províncias</span>
+                        </div>
+                        <div class="about-stat">
+                            <span class="about-stat-number" id="about-instruments">0</span>
+                            <span>Instrumentos</span>
+                        </div>
+                    </div>
+                </div>
 
-// ============================================
-// EVENTOS DE FILTRO POR PROVÍNCIA
-// ============================================
-$('#f-provincia').addEventListener('change', async function() {
-    const provincia = this.value;
-    const bairroSelect = $('#f-bairro');
-    bairroSelect.innerHTML = '<option value="">Todos os bairros</option>';
-    
-    if (provincia) {
-        const bairros = await getBairrosPorProvincia(provincia);
-        const uniqueBairros = [...new Set(bairros.map(b => b.neighborhood))];
-        uniqueBairros.forEach(b => {
-            bairroSelect.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`);
-        });
-    }
-    renderTeachers();
-});
+                <div class="about-contact">
+                    <h3>Parcerias e Contactos</h3>
+                    <div class="about-contact-grid">
+                        <a href="mailto:parcerias@aulaperto.co.mz" class="about-contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>parcerias@aulaperto.co.mz</span>
+                        </a>
+                        <a href="https://wa.me/258840000000" class="about-contact-item">
+                            <i class="fab fa-whatsapp"></i>
+                            <span>84 000 0000</span>
+                        </a>
+                        <a href="tel:+258840000000" class="about-contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span>+258 84 000 0000</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
 
-// ============================================
-// MODAL DE CONTACTO
-// ============================================
-function abrirModalContacto(nome, instrumentos) {
-    $('#modal-teacher-subtitle').textContent = `Solicitar contacto com ${nome}`;
-    $('#lead-teacher-name').value = nome;
-    
-    const lInstr = $('#l-instrumento');
-    lInstr.innerHTML = '<option value="">Selecione o instrumento...</option>';
-    INSTRUMENTOS.forEach(i => {
-        lInstr.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(i)}">${escapeHtml(i)}</option>`);
-    });
-    
-    $('#modal-contacto').style.display = 'flex';
-    $('#l-nome').focus();
-}
+<div id="modal-contacto" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <button class="modal-close" onclick="fecharModal()">&times;</button>
+        <div class="modal-header">
+            <h3><i class="fas fa-paper-plane"></i> Pedir Aula</h3>
+            <p id="modal-teacher-subtitle">Envia uma mensagem para a nossa equipa intermediar</p>
+        </div>
+        <form id="form-lead">
+            <input type="hidden" id="lead-teacher-name" />
+            <input type="hidden" id="lead-teacher-id" />
+            
+            <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
+                <label for="l-website">Não preencher este campo</label>
+                <input type="text" id="l-website" name="website" tabindex="-1" autocomplete="off" />
+            </div>
 
-function fecharModal() {
-    $('#modal-contacto').style.display = 'none';
-    const formLead = $('#form-lead');
-    if (formLead) {
-        formLead.reset();
-        limparErrosFormulario(formLead);
-    }
-}
+            <div class="field">
+                <label for="l-nome">O teu Nome Completo *</label>
+                <input type="text" id="l-nome" placeholder="Ex: Mário Tembe" required />
+            </div>
+            <div class="field">
+                <label for="l-whatsapp">O teu WhatsApp *</label>
+                <input type="tel" id="l-whatsapp" placeholder="Ex: 84 123 4567" required />
+            </div>
+            <div class="field">
+                <label for="l-instrumento">Instrumento Pretendido *</label>
+                <select id="l-instrumento" required>
+                    <option value="">Selecione...</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 12px;">
+                <i class="fas fa-paper-plane"></i> Confirmar e Enviar Pedido
+            </button>
+        </form>
+    </div>
+</div>
 
-// Event Delegation para botões "Pedir Aula" e "Partilhar Perfil"
-$('#results-grid').addEventListener('click', (e) => {
-    const shareBtn = e.target.closest('.btn-share-profile');
-    if (shareBtn) {
-        const slug = shareBtn.dataset.slug;
-        if (slug) copiarLink(linkPerfilProfessor(slug));
-        return;
-    }
-    const btn = e.target.closest('.btn-pedir-aula');
-    if (btn) {
-        abrirModalContacto(btn.dataset.nome, btn.dataset.instrumentos);
-    }
-});
+<div id="toast-container"></div>
 
-// Track de cliques em patrocínios (banner Destaque + faixa Padrão) —
-// não bloqueia a navegação, já que os links abrem em nova aba.
-document.addEventListener('click', (e) => {
-    const link = e.target.closest('.sponsor-link');
-    if (link && link.dataset.sponsorId) {
-        supabaseClient.rpc('registar_click_patrocinio', { p_sponsor_id: link.dataset.sponsorId })
-            .then(({ error }) => { if (error) console.error('Erro ao registar clique:', error); });
-    }
-});
+<footer class="footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div>
+                <div class="footer-logo">♫ AulaPerto</div>
+                <p>Conectando alunos e professores de música em Moçambique.</p>
+            </div>
+            <div>
+                <h4>Links</h4>
+                <ul class="footer-links">
+                    <li><a href="#" data-view="search">Encontrar Professor</a></li>
+                    <li><a href="#" data-view="teach">Sou Professor</a></li>
+                    <li><a href="#" data-view="about">Sobre nós</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Contactos</h4>
+                <ul class="footer-contacts">
+                    <li>
+                        <i class="fab fa-whatsapp"></i>
+                        <a href="https://wa.me/258840000000">84 000 0000</a>
+                    </li>
+                    <li>
+                        <i class="fas fa-envelope"></i>
+                        <a href="mailto:parcerias@aulaperto.co.mz">parcerias@aulaperto.co.mz</a>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <h4>Redes Sociais</h4>
+                <div class="social-links">
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2026 AulaPerto · Todos os direitos reservados.</span>
+            <span>Feito com ♥ em Moçambique</span>
+        </div>
+    </div>
+</footer>
 
-// Fechar modal com Escape
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && $('#modal-contacto').style.display === 'flex') {
-        fecharModal();
-    }
-});
-
-// Fechar ao clicar no overlay
-$('#modal-contacto').addEventListener('click', (e) => {
-    if (e.target.id === 'modal-contacto') fecharModal();
-});
-
-// ============================================
-// SUBMETER SOLICITAÇÃO (LEADS)
-// ============================================
-$('#form-lead').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const btnSubmit = form.querySelector('button[type="submit"]');
-    const originalBtnContent = btnSubmit.innerHTML;
-    
-    limparErrosFormulario(form);
-    
-    // Honeypot
-    if ($('#l-website') && $('#l-website').value.trim() !== '') {
-        fecharModal();
-        showToast('Obrigado! Pedido registado.', 'success');
-        return;
-    }
-    
-    const alunoNome = $('#l-nome').value.trim();
-    const rawWhatsapp = $('#l-whatsapp').value.trim();
-    const instrumento = $('#l-instrumento').value;
-    const professorNome = $('#lead-teacher-name').value;
-    
-    let temErro = false;
-    
-    if (alunoNome.length < 3) {
-        mostrarErroCampo('#l-nome', 'Insira o seu nome completo.');
-        temErro = true;
-    }
-    if (!validarTelefoneMZ(rawWhatsapp)) {
-        mostrarErroCampo('#l-whatsapp', 'Número inválido (ex: 841234567).');
-        temErro = true;
-    }
-    if (!instrumento) {
-        mostrarErroCampo('#l-instrumento', 'Selecione o instrumento.');
-        temErro = true;
-    }
-    if (temErro) return;
-    
-    setButtonLoading(btnSubmit, true);
-    const alunoWhatsapp = formatarTelefoneMZ(rawWhatsapp);
-    
-    try {
-        const { error } = await supabaseClient.from('leads').insert([{
-            student_name: alunoNome,
-            student_whatsapp: alunoWhatsapp,
-            teacher_name: professorNome,
-            instrument: instrumento,
-            status: 'pending'
-        }]);
-        if (error) throw error;
-        
-        fecharModal();
-        showToast(`Obrigado, ${alunoNome}! Pedido registado.`, 'success');
-    } catch (err) {
-        console.error('Erro:', err);
-        showToast('Erro ao enviar pedido. Tenta novamente.', 'error');
-    } finally {
-        setButtonLoading(btnSubmit, false, originalBtnContent);
-    }
-});
-
-// ============================================
-// CADASTRO DE PROFESSOR
-// ============================================
-$('#teacher-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const btnSubmit = form.querySelector('button[type="submit"]');
-    const originalBtnContent = btnSubmit.innerHTML;
-    
-    limparErrosFormulario(form);
-    
-    // Honeypot
-    if ($('#t-website') && $('#t-website').value.trim() !== '') {
-        showToast('Perfil submetido!', 'success');
-        $('#success-text').textContent = 'Perfil submetido com sucesso! Aguarde validação.';
-        $('#success-msg').classList.add('show');
-        form.reset();
-        return;
-    }
-    
-    const nome = $('#t-nome').value.trim();
-    const provincia = $('#t-provincia').value;
-    let bairro = $('#t-bairro').value;
-    const preco = $('#t-preco').value;
-    const rawWhatsapp = $('#t-whatsapp').value.trim();
-    const bio = $('#t-bio').value.trim();
-    const exp = $('#t-exp') ? $('#t-exp').value : 1;
-    const instrumentos = Array.from(document.querySelectorAll('#t-instrumentos .chip.active')).map(c => c.dataset.value);
-    
-    // Verificar se é "outro" bairro
-    if (bairro === 'outro') {
-        bairro = $('#t-novo-bairro').value.trim();
-    }
-    
-    let temErro = false;
-    
-    if (nome.length < 3) {
-        mostrarErroCampo('#t-nome', 'Insira o seu nome completo.');
-        temErro = true;
-    }
-    if (!provincia) {
-        mostrarErroCampo('#t-provincia', 'Selecione a província.');
-        temErro = true;
-    }
-    if (!bairro) {
-        mostrarErroCampo('#t-bairro', 'Selecione ou adicione o bairro.');
-        temErro = true;
-    }
-    if (!preco || Number(preco) <= 0) {
-        mostrarErroCampo('#t-preco', 'Insira o valor da aula.');
-        temErro = true;
-    }
-    if (!validarTelefoneMZ(rawWhatsapp)) {
-        mostrarErroCampo('#t-whatsapp', 'Número inválido (ex: 841234567).');
-        temErro = true;
-    }
-    if (instrumentos.length === 0) {
-        showToast('Selecione pelo menos um instrumento.', 'error');
-        temErro = true;
-    }
-    if (temErro) return;
-    
-    setButtonLoading(btnSubmit, true);
-    
-    try {
-        // Upload da foto
-        let fotoUrl = null;
-        const ficheiroFoto = $('#t-foto') && $('#t-foto').files[0];
-        if (ficheiroFoto) {
-            try {
-                fotoUrl = await uploadFotoProfessor(ficheiroFoto);
-            } catch (fotoErr) {
-                showToast(fotoErr.message || 'Erro ao enviar foto.', 'error');
-                setButtonLoading(btnSubmit, false, originalBtnContent);
-                return;
-            }
-        }
-        
-        // Salvar localização
-        await supabaseClient.from('locations').insert([{
-            province: provincia,
-            neighborhood: bairro
-        }]).select();
-        
-        // Salvar professor (o "slug" é gerado automaticamente pela base de dados)
-        const { error } = await supabaseClient.from('professors').insert([{
-            name: nome,
-            province: provincia,
-            neighborhood: bairro,
-            instruments: instrumentos,
-            price: Number(preco),
-            whatsapp: formatarTelefoneMZ(rawWhatsapp),
-            bio: bio,
-            experience: Number(exp) || 1,
-            status: 'pending',
-            photo_url: fotoUrl
-        }]);
-        
-        if (error) throw error;
-        
-        showToast('Perfil submetido! Aguarde aprovação.', 'success');
-        $('#success-text').textContent = 'Perfil submetido com sucesso! Irá aparecer após validação.';
-        $('#success-msg').classList.add('show');
-        form.reset();
-        document.querySelectorAll('#t-instrumentos .chip.active').forEach(c => c.classList.remove('active'));
-        localStorage.removeItem(CACHE_KEY);
-        
-    } catch (err) {
-        console.error('Erro no cadastro:', err);
-        showToast('Erro ao submeter o formulário.', 'error');
-    } finally {
-        setButtonLoading(btnSubmit, false, originalBtnContent);
-    }
-});
-
-// ============================================
-// EVENTO: Província mudar no formulário
-// ============================================
-$('#t-provincia').addEventListener('change', async function() {
-    const provincia = this.value;
-    const bairroSelect = $('#t-bairro');
-    bairroSelect.innerHTML = '<option value="">Selecione o bairro...</option>';
-    const novoBairroWrapper = $('#novo-bairro-wrapper');
-    
-    if (provincia) {
-        const bairros = await getBairrosPorProvincia(provincia);
-        const uniqueBairros = [...new Set(bairros.map(b => b.neighborhood))];
-        uniqueBairros.forEach(b => {
-            bairroSelect.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`);
-        });
-        bairroSelect.insertAdjacentHTML('beforeend', `<option value="outro">+ Adicionar novo bairro</option>`);
-        novoBairroWrapper.style.display = 'block';
-    } else {
-        novoBairroWrapper.style.display = 'none';
-    }
-});
-
-// ============================================
-// NAVEGAÇÃO ENTRE VIEWS
-// ============================================
-$$('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const view = btn.dataset.view;
-        
-        $$('.view').forEach(v => v.classList.remove('active'));
-        $$('.nav-btn').forEach(b => b.classList.remove('active'));
-        
-        const targetView = $(`#view-${view}`);
-        if (targetView) targetView.classList.add('active');
-        btn.classList.add('active');
-        
-        if (view === 'search') renderTeachers();
-        if (view === 'about') updateStats();
-    });
-});
-
-// Links do footer
-$$('.footer-links a').forEach(link => {
-    link.addEventListener('click', (e) => {
-        e.preventDefault();
-        const view = link.dataset.view;
-        const btn = document.querySelector(`.nav-btn[data-view="${view}"]`);
-        if (btn) btn.click();
-    });
-});
-
-// ============================================
-// INICIALIZAÇÃO
-// ============================================
-document.addEventListener('DOMContentLoaded', async () => {
-    populateSelects();
-    await carregarLocalizacoes();
-    await carregarSponsors();
-    renderHeroBanner();
-    renderSponsorStrip();
-    await carregarProfessores();
-    
-    // Event listeners de filtros
-    $('#f-provincia').addEventListener('change', renderTeachers);
-    $('#f-instr').addEventListener('change', renderTeachers);
-    if ($('#f-preco')) $('#f-preco').addEventListener('change', renderTeachers);
-    $('#btn-search').addEventListener('click', renderTeachers);
-});
+<script src="script.js"></script>
+</body>
+</html>
