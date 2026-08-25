@@ -40,6 +40,23 @@ function setButtonLoading(btn, isLoading, originalText, loadingText = 'A verific
     }
 }
 
+// Link partilhável do perfil individual de um professor, resolvido
+// corretamente independentemente da pasta onde o site está hospedado.
+function linkPerfilProfessor(slug) {
+    return new URL(`professor.html?p=${encodeURIComponent(slug)}`, window.location.href).href;
+}
+
+async function copiarLinkProfessor(slug) {
+    const url = linkPerfilProfessor(slug);
+    try {
+        await navigator.clipboard.writeText(url);
+        showToast('Link do perfil copiado!', 'success');
+    } catch (err) {
+        console.error('Erro ao copiar link:', err);
+        showToast(`Não foi possível copiar automaticamente. Link: ${url}`, 'info');
+    }
+}
+
 // ============================================
 // AUTENTICAÇÃO (Supabase Auth — email + palavra-passe)
 // ============================================
@@ -314,7 +331,7 @@ async function carregarAprovados() {
     try {
         const { data, error } = await supabaseClient
             .from('professors')
-            .select('id, name, neighborhood, province, price, featured')
+            .select('id, slug, name, neighborhood, province, price, featured')
             .eq('status', 'approved')
             .order('featured', { ascending: false })
             .order('name', { ascending: true });
@@ -331,7 +348,14 @@ async function carregarAprovados() {
 
         tbody.innerHTML = data.map(p => `
             <tr>
-                <td><strong>${escapeHtml(p.name)}</strong></td>
+                <td>
+                    <strong>${escapeHtml(p.name)}</strong>
+                    ${p.slug ? `
+                    <br />
+                    <a href="professor.html?p=${encodeURIComponent(p.slug)}" target="_blank" style="font-size:11px; color:#2563EB; font-weight:600;">
+                        <i class="fas fa-external-link-alt"></i> ver perfil
+                    </a>` : ''}
+                </td>
                 <td>
                     <span style="background:#DBEAFE;color:#1E40AF;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:600;">${escapeHtml(p.province || 'N/A')}</span>
                     <br />
@@ -345,10 +369,16 @@ async function carregarAprovados() {
                     }
                 </td>
                 <td>
-                    ${p.featured
-                        ? `<button onclick="alternarDestaque('${p.id}', true)" class="btn-featured-off"><i class="fas fa-star-half-alt"></i> Remover Destaque</button>`
-                        : `<button onclick="alternarDestaque('${p.id}', false)" class="btn-featured-on"><i class="fas fa-star"></i> Destacar</button>`
-                    }
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        ${p.featured
+                            ? `<button onclick="alternarDestaque('${p.id}', true)" class="btn-featured-off"><i class="fas fa-star-half-alt"></i> Remover Destaque</button>`
+                            : `<button onclick="alternarDestaque('${p.id}', false)" class="btn-featured-on"><i class="fas fa-star"></i> Destacar</button>`
+                        }
+                        ${p.slug ? `
+                        <button onclick="copiarLinkProfessor('${p.slug}')" class="btn-small-danger" style="color:#2563EB;border-color:#BFDBFE;">
+                            <i class="fas fa-link"></i> Copiar Link
+                        </button>` : ''}
+                    </div>
                 </td>
             </tr>
         `).join('');
@@ -423,7 +453,7 @@ async function carregarSponsorsAdmin() {
                     <br />
                     <small style="color:#64748B;">${escapeHtml(s.description)}</small>
                 </td>
-                <td>${s.style === 'featured' ? 'Destaque' : 'Padrão'}</td>
+                <td>${s.style === 'featured' ? 'Destaque' : s.style === 'profile' ? 'Banner de Perfil' : 'Padrão'}</td>
                 <td>
                     ${s.link_url
                         ? `<strong>${clicks7d}</strong> <span style="color:#94A3B8;">/ ${clicksTotal}</span>`
@@ -540,7 +570,7 @@ async function carregarLeads() {
     try {
         const { data, error } = await supabaseClient
             .from('leads')
-            .select('*')
+            .select('*, professors:teacher_id(whatsapp)')
             .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -556,6 +586,22 @@ async function carregarLeads() {
         tbody.innerHTML = data.map(l => {
             const dataFormatada = new Date(l.created_at).toLocaleDateString('pt-MZ');
             const msgAluno = encodeURIComponent(`Olá ${l.student_name}, recebemos o teu pedido no AulaPerto!`);
+            const professorWhatsapp = l.professors ? l.professors.whatsapp : null;
+
+            // Mensagem pronta a enviar ao professor com os dados do pedido,
+            // para não teres de escrever isto manualmente todas as vezes.
+            const msgProfessor = encodeURIComponent(
+                `Olá ${l.teacher_name || ''}! Tens um novo pedido de aula no AulaPerto:\n` +
+                `Aluno: ${l.student_name}\n` +
+                `WhatsApp do aluno: ${l.student_whatsapp}\n` +
+                `Instrumento: ${l.instrument}`
+            );
+
+            const btnProfessor = professorWhatsapp
+                ? `<a href="https://wa.me/${professorWhatsapp}?text=${msgProfessor}" target="_blank" style="background:#2563EB;color:white;padding:6px 12px;border-radius:6px;font-weight:600;display:inline-flex;align-items:center;gap:4px;text-decoration:none;font-size:13px;">
+                        <i class="fas fa-chalkboard-teacher"></i> Professor
+                    </a>`
+                : `<span style="font-size:11px; color:#94A3B8;" title="Pedido antigo sem professor associado">sem contacto</span>`;
 
             return `
                 <tr>
@@ -568,6 +614,7 @@ async function carregarLeads() {
                             <a href="https://wa.me/${l.student_whatsapp}?text=${msgAluno}" target="_blank" style="background:#25D366;color:white;padding:6px 12px;border-radius:6px;font-weight:600;display:inline-flex;align-items:center;gap:4px;text-decoration:none;font-size:13px;">
                                 <i class="fab fa-whatsapp"></i> Aluno
                             </a>
+                            ${btnProfessor}
                         </div>
                     </td>
                 </tr>
