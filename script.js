@@ -13,8 +13,9 @@ const PROVINCIAS = [
 ];
 
 const INSTRUMENTOS = [
-    "Piano", "Guitarra", "Violão", "Bateria", "Canto",
-    "Teclado", "Saxofone", "Violino", "Baixo", "Ukulele"
+    "Piano", "Guitarra", "Saxofone", "Clarinete", "Guitarra Baixo",
+    "Contrabaixo", "Viola de Arco", "Violino", "Violoncelo",
+    "Guitarra Clássica", "Voz", "Ukulele", "Flauta Doce", "Timbila", "Mbira"
 ];
 
 const CACHE_KEY = "aulaperto_teachers_cache";
@@ -218,6 +219,23 @@ function populateSelects() {
         chip.addEventListener('click', () => chip.classList.toggle('active'));
         tInstrumentos.appendChild(chip);
     });
+
+    // Chip "Outro" — para o professor poder indicar um instrumento que não
+    // está na lista fixa (ex: Marimba, Órgão, Kalimba...).
+    const chipOutro = document.createElement('div');
+    chipOutro.className = 'chip chip-outro';
+    chipOutro.textContent = '+ Outro';
+    chipOutro.dataset.value = 'outro';
+    chipOutro.addEventListener('click', () => {
+        chipOutro.classList.toggle('active');
+        const wrapper = $('#instrumento-outro-wrapper');
+        if (wrapper) wrapper.style.display = chipOutro.classList.contains('active') ? 'block' : 'none';
+        if (!chipOutro.classList.contains('active')) {
+            const campo = $('#t-instrumento-outro');
+            if (campo) campo.value = '';
+        }
+    });
+    tInstrumentos.appendChild(chipOutro);
 }
 
 // ============================================
@@ -675,7 +693,15 @@ $('#teacher-form').addEventListener('submit', async (e) => {
     const bio = $('#t-bio').value.trim();
     const programa = $('#t-programa').value.trim();
     const exp = $('#t-exp') ? $('#t-exp').value : 1;
-    const instrumentos = Array.from(document.querySelectorAll('#t-instrumentos .chip.active')).map(c => c.dataset.value);
+    const instrumentosChips = Array.from(document.querySelectorAll('#t-instrumentos .chip.active'));
+    const instrumentoOutroAtivo = instrumentosChips.some(c => c.dataset.value === 'outro');
+    const instrumentoOutroValor = $('#t-instrumento-outro') ? $('#t-instrumento-outro').value.trim() : '';
+    const instrumentos = instrumentosChips
+        .map(c => c.dataset.value)
+        .filter(v => v !== 'outro');
+    if (instrumentoOutroAtivo && instrumentoOutroValor) {
+        instrumentos.push(instrumentoOutroValor);
+    }
     
     // Verificar se é "outro" bairro
     if (bairro === 'outro') {
@@ -714,6 +740,10 @@ $('#teacher-form').addEventListener('submit', async (e) => {
     }
     if (instrumentos.length === 0) {
         showToast('Selecione pelo menos um instrumento.', 'error');
+        temErro = true;
+    }
+    if (instrumentoOutroAtivo && !instrumentoOutroValor) {
+        mostrarErroCampo('#t-instrumento-outro', 'Escreve o nome do instrumento.');
         temErro = true;
     }
     if (temErro) return;
@@ -762,6 +792,8 @@ $('#teacher-form').addEventListener('submit', async (e) => {
         $('#success-msg').classList.add('show');
         form.reset();
         document.querySelectorAll('#t-instrumentos .chip.active').forEach(c => c.classList.remove('active'));
+        const outroWrapper = $('#instrumento-outro-wrapper');
+        if (outroWrapper) outroWrapper.style.display = 'none';
         localStorage.removeItem(CACHE_KEY);
         
     } catch (err) {
@@ -807,6 +839,7 @@ $$('.nav-btn').forEach(btn => {
         const targetView = $(`#view-${view}`);
         if (targetView) targetView.classList.add('active');
         btn.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         
         if (view === 'search') renderTeachers();
         if (view === 'about') updateStats();
