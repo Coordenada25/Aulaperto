@@ -398,15 +398,15 @@ a { text-decoration: none; color: inherit; }
 .card-top { display: flex; gap: 14px; align-items: flex-start; }
 
 .card-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
+    width: 96px;
+    height: 96px;
+    border-radius: 14px;
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: 'Fraunces', serif;
-    font-size: 20px;
+    font-size: 28px;
     font-weight: 700;
     flex-shrink: 0;
 }
@@ -471,6 +471,10 @@ a { text-decoration: none; color: inherit; }
     font-size: 14px;
     color: #334155;
     line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .card-footer {
@@ -1213,7 +1217,7 @@ a { text-decoration: none; color: inherit; }
 .profile-avatar-lg {
     width: 88px;
     height: 88px;
-    border-radius: 50%;
+    border-radius: 14px;
     color: white;
     display: flex;
     align-items: center;
