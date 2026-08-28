@@ -623,6 +623,15 @@ a { text-decoration: none; color: inherit; }
     color: white;
 }
 
+.chip-outro {
+    border-style: dashed;
+    color: var(--cor-texto-suave);
+}
+
+.chip-outro.active {
+    border-style: solid;
+}
+
 .btn-submit {
     width: 100%;
     padding: 13px;
