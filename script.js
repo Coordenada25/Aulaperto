@@ -657,6 +657,14 @@ $('#form-lead').addEventListener('submit', async (e) => {
         
         fecharModal();
         showToast(`Obrigado, ${alunoNome}! Pedido registado.`, 'success');
+
+        // Analytics: marca a conversão real (visita → pedido de aula).
+        if (typeof gtag === 'function') {
+            gtag('event', 'gerar_lead', {
+                teacher_name: professorNome,
+                instrument: instrumento
+            });
+        }
     } catch (err) {
         console.error('Erro:', err);
         showToast('Erro ao enviar pedido. Tenta novamente.', 'error');
