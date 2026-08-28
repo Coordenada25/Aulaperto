@@ -579,7 +579,7 @@ async function carregarLeads() {
         if (!tbody) return;
 
         if (!data || data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94A3B8; padding:20px;">Nenhuma solicitação de aula.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94A3B8; padding:20px;">Nenhuma solicitação de aula.</td></tr>`;
             return;
         }
 
@@ -587,6 +587,10 @@ async function carregarLeads() {
             const dataFormatada = new Date(l.created_at).toLocaleDateString('pt-MZ');
             const msgAluno = encodeURIComponent(`Olá ${l.student_name}, recebemos o teu pedido no AulaPerto!`);
             const professorWhatsapp = l.professors ? l.professors.whatsapp : null;
+            const estadoAtual = l.status || 'pending';
+
+            const estadoLabels = { pending: 'Pendente', contactado: 'Contactado', fechado: 'Fechado' };
+            const badgeEstado = `<span class="badge-status ${estadoAtual}">${estadoLabels[estadoAtual] || estadoAtual}</span>`;
 
             // Mensagem pronta a enviar ao professor com os dados do pedido,
             // para não teres de escrever isto manualmente todas as vezes.
@@ -610,6 +614,14 @@ async function carregarLeads() {
                     <td>${escapeHtml(l.teacher_name || 'N/A')}</td>
                     <td><span style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;background:#DBEAFE;color:#1D4ED8;border:1px solid #BFDBFE;">${escapeHtml(l.instrument)}</span></td>
                     <td>
+                        ${badgeEstado}
+                        <select onchange="alternarEstadoLead('${l.id}', this.value)" style="display:block; margin-top:4px; font-size:11px; padding:3px 6px; border-radius:6px; border:1px solid var(--cor-borda);">
+                            <option value="pending" ${estadoAtual === 'pending' ? 'selected' : ''}>Pendente</option>
+                            <option value="contactado" ${estadoAtual === 'contactado' ? 'selected' : ''}>Contactado</option>
+                            <option value="fechado" ${estadoAtual === 'fechado' ? 'selected' : ''}>Fechado (aula feita)</option>
+                        </select>
+                    </td>
+                    <td>
                         <div style="display:flex; gap:6px; flex-wrap:wrap;">
                             <a href="https://wa.me/${l.student_whatsapp}?text=${msgAluno}" target="_blank" style="background:#25D366;color:white;padding:6px 12px;border-radius:6px;font-weight:600;display:inline-flex;align-items:center;gap:4px;text-decoration:none;font-size:13px;">
                                 <i class="fab fa-whatsapp"></i> Aluno
@@ -624,5 +636,22 @@ async function carregarLeads() {
     } catch (err) {
         console.error('Erro ao carregar leads:', err);
         throw err;
+    }
+}
+
+async function alternarEstadoLead(id, novoEstado) {
+    try {
+        const { error } = await supabaseClient
+            .from('leads')
+            .update({ status: novoEstado })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        showToast('Estado do pedido atualizado.', 'success');
+    } catch (err) {
+        console.error('Erro ao atualizar estado do lead:', err);
+        showToast('Erro ao atualizar estado.', 'error');
+        await carregarLeads();
     }
 }
