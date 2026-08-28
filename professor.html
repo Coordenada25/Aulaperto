@@ -1,409 +1,116 @@
-// ============================================
-// CONFIGURAÇÃO
-// ============================================
-const SUPABASE_URL = "https://zxxwxwtsolbnyzbrabwp.supabase.co";
-const SUPABASE_KEY = "sb_publishable_x0Ehx6SckG0JHXqdvOusXw_5LG12KPm";
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+<!DOCTYPE html>
+<html lang="pt-MZ">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Professor - AulaPerto</title>
+    <meta name="description" content="Perfil de professor de música no AulaPerto, Moçambique." />
 
-const INSTRUMENTOS = [
-    "Piano", "Guitarra", "Saxofone", "Clarinete", "Guitarra Baixo",
-    "Contrabaixo", "Viola de Arco", "Violino", "Violoncelo",
-    "Guitarra Clássica", "Voz", "Ukulele", "Flauta Doce", "Timbila", "Mbira"
-];
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="style.css" />
 
-const $ = (s) => document.querySelector(s);
-let professorAtual = null;
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-94FGNWJ0F7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-94FGNWJ0F7');
+    </script>
+</head>
+<body>
 
-// ============================================
-// UTILITÁRIOS (mesmos do script.js principal)
-// ============================================
-function escapeHtml(str) {
-    if (str === null || str === undefined) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-
-function showToast(mensagem, tipo = 'info') {
-    const container = $('#toast-container');
-    if (!container) return;
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${tipo}`;
-    toast.innerHTML = `
-        <span>${escapeHtml(mensagem)}</span>
-        <button style="background:none;border:none;cursor:pointer;color:inherit;font-size:16px;" onclick="this.parentElement.remove()">&times;</button>
-    `;
-    container.appendChild(toast);
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(100%)';
-        setTimeout(() => toast.remove(), 300);
-    }, 4000);
-}
-
-function validarTelefoneMZ(numero) {
-    const limpo = numero.replace(/\D/g, '');
-    return /^(?:258)?(8[234567]\d{7})$/.test(limpo);
-}
-
-function formatarTelefoneMZ(numero) {
-    const limpo = numero.replace(/\D/g, '');
-    return limpo.startsWith('258') ? limpo : '258' + limpo;
-}
-
-function initials(name) {
-    if (!name) return 'P';
-    return name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
-}
-
-function getInitialsColor(name) {
-    const colors = ['#2563EB', '#1D4ED8', '#0284C7', '#7C3AED', '#4F46E5'];
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    return colors[Math.abs(hash) % colors.length];
-}
-
-function renderStars(rating) {
-    const full = Math.floor(rating || 0);
-    let stars = '';
-    for (let i = 0; i < full; i++) stars += '⭐';
-    return stars;
-}
-
-function setButtonLoading(btn, isLoading, originalText) {
-    if (isLoading) {
-        btn.classList.add('btn-loading');
-        btn.disabled = true;
-        btn.innerHTML = `<span class="spinner"></span> Processando...`;
-    } else {
-        btn.classList.remove('btn-loading');
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-    }
-}
-
-function mostrarErroCampo(elementId, mensagem) {
-    const el = $(elementId);
-    if (!el) return;
-    el.classList.add('input-error');
-    let errEl = el.parentNode.querySelector('.error-text');
-    if (!errEl) {
-        errEl = document.createElement('small');
-        errEl.className = 'error-text';
-        el.parentNode.appendChild(errEl);
-    }
-    errEl.textContent = mensagem;
-}
-
-function limparErrosFormulario(form) {
-    if (!form) return;
-    form.querySelectorAll('.input-error').forEach(e => e.classList.remove('input-error'));
-    form.querySelectorAll('.error-text').forEach(e => e.remove());
-}
-
-async function copiarLink(url) {
-    try {
-        await navigator.clipboard.writeText(url);
-        showToast('Link copiado! Já podes partilhar no WhatsApp ou Facebook.', 'success');
-    } catch (err) {
-        console.error('Erro ao copiar link:', err);
-        showToast(`Não foi possível copiar automaticamente. Link: ${url}`, 'info');
-    }
-}
-
-// ============================================
-// CARREGAR PERFIL PELO SLUG NA URL
-// ============================================
-function getSlugFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    return (params.get('p') || '').trim();
-}
-
-function renderNaoEncontrado() {
-    $('#profile-content').innerHTML = `
-        <div class="profile-error">
-            <i class="fas fa-user-slash"></i>
-            <h2>Professor não encontrado</h2>
-            <p>Este perfil não existe, foi removido, ou ainda está a aguardar aprovação.</p>
-            <a href="index.html" class="btn-primary"><i class="fas fa-search"></i> Ver todos os professores</a>
-        </div>
-    `;
-}
-
-async function carregarPerfil() {
-    const slug = getSlugFromUrl();
-    if (!slug) {
-        renderNaoEncontrado();
-        return;
-    }
-
-    try {
-        const { data, error } = await supabaseClient
-            .from('professors')
-            .select('id, slug, name, neighborhood, province, instruments, price, bio, course_program, experience, rating, total_reviews, photo_url, featured, whatsapp')
-            .eq('slug', slug)
-            .eq('status', 'approved')
-            .maybeSingle();
-
-        if (error) throw error;
-        if (!data) {
-            renderNaoEncontrado();
-            return;
-        }
-
-        professorAtual = data;
-        renderPerfil(data);
-
-        // Ajusta título e descrição da aba do navegador para este professor
-        document.title = `${data.name} - Professor de ${(data.instruments || [])[0] || 'Música'} | AulaPerto`;
-        const metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc) {
-            metaDesc.setAttribute('content', `${data.name} ensina ${(data.instruments || []).join(', ')} em ${escapeHtml(data.neighborhood || '')}, ${escapeHtml(data.province || '')}. Contacta via AulaPerto.`);
-        }
-    } catch (err) {
-        console.error('Erro ao carregar perfil:', err);
-        renderNaoEncontrado();
-    }
-}
-
-function renderPerfil(p) {
-    const temAvaliacoes = p.total_reviews && p.total_reviews > 0 && p.rating;
-    const ratingHTML = temAvaliacoes
-        ? `<div class="card-rating">${renderStars(p.rating)} ${Number(p.rating).toFixed(1)} <span>(${p.total_reviews})</span></div>`
-        : `<div class="card-rating"><span class="badge-new"><i class="fas fa-sparkles"></i> Novo no AulaPerto</span></div>`;
-
-    const featuredBadge = p.featured
-        ? `<span class="badge badge-featured"><i class="fas fa-star"></i> Destaque</span>`
-        : '';
-
-    const instrumentos = p.instruments || [];
-    const linkAtual = window.location.href;
-
-    $('#profile-content').innerHTML = `
-        <a href="index.html" class="profile-back-link"><i class="fas fa-arrow-left"></i> Voltar à pesquisa</a>
-        <div class="profile-card">
-            <div class="profile-top">
-                ${p.photo_url
-                    ? `<img src="${escapeHtml(p.photo_url)}" alt="${escapeHtml(p.name)}" class="profile-avatar-lg" style="object-fit:cover;" />`
-                    : `<div class="profile-avatar-lg" style="background:${getInitialsColor(p.name)}">${initials(p.name)}</div>`
-                }
-                <div class="profile-info">
-                    <div class="card-name" style="font-size:22px;">
-                        ${escapeHtml(p.name)}
-                        ${featuredBadge}
-                        <span class="badge badge-gold"><i class="fas fa-check-circle"></i> Aprovado</span>
-                    </div>
-                    ${ratingHTML}
-                    <div class="card-experience"><i class="fas fa-briefcase"></i> ${p.experience || 1} ${p.experience === 1 ? 'ano' : 'anos'} de experiência</div>
-                    <div class="card-location"><i class="fas fa-map-pin"></i> ${escapeHtml(p.neighborhood || '')}, ${escapeHtml(p.province || '')}</div>
+<header class="header">
+    <div class="container header-container">
+        <div class="logo">
+            <a href="index.html" aria-label="AulaPerto - Página Inicial">
+                <div class="logo-icon">♫</div>
+                <div>
+                    <span class="logo-text">AulaPerto</span>
+                    <span class="logo-sub">🎵 Professores de música em Moçambique</span>
                 </div>
-            </div>
-
-            <div class="card-tags profile-tags">
-                ${instrumentos.map(i => `<span class="card-tag card-tag-instrument">${escapeHtml(i)}</span>`).join('')}
-            </div>
-
-            <p class="card-bio profile-bio">${escapeHtml(p.bio) || 'Professor particular de música disponível para aulas.'}</p>
-
-            ${p.course_program ? `
-            <div class="profile-programa">
-                <span class="profile-programa-label"><i class="fas fa-list-check"></i> O que vais aprender</span>
-                <p class="profile-programa-text">${escapeHtml(p.course_program)}</p>
-            </div>` : ''}
-
-            <div class="profile-footer">
-                <div class="card-price">${p.price} MT <span>/ aula</span></div>
-                <button class="btn-whatsapp btn-pedir-aula-perfil">
-                    <i class="fas fa-paper-plane"></i> Pedir Aula
-                </button>
-            </div>
-
-            <div class="profile-actions">
-                <span class="profile-actions-label"><i class="fas fa-share-nodes"></i> Partilhar este perfil</span>
-                <div class="profile-actions-buttons">
-                    <button class="btn-copy-link" id="btn-copiar-link">
-                        <i class="fas fa-link"></i> Copiar Link
-                    </button>
-                    <a class="btn-whatsapp-share" id="btn-partilhar-whatsapp" target="_blank" rel="noopener">
-                        <i class="fab fa-whatsapp"></i> Partilhar no WhatsApp
-                    </a>
-                </div>
-            </div>
+            </a>
         </div>
-        <div id="profile-sponsor-slot"></div>
-    `;
+        <nav class="nav">
+            <a href="index.html" class="nav-btn"><i class="fas fa-arrow-left"></i> Voltar à pesquisa</a>
+        </nav>
+    </div>
+</header>
 
-    // Ligar ações depois de renderizar
-    $('.btn-pedir-aula-perfil').addEventListener('click', () => abrirModalContacto(p.name, p.id));
-    $('#btn-copiar-link').addEventListener('click', () => copiarLink(linkAtual));
-
-    const textoPartilha = encodeURIComponent(`Encontrei o(a) professor(a) ${p.name} no AulaPerto: ${linkAtual}`);
-    $('#btn-partilhar-whatsapp').href = `https://wa.me/?text=${textoPartilha}`;
-
-    carregarSponsorPerfil();
-}
-
-// ============================================
-// BANNER DE PATROCÍNIO (só nas páginas de perfil)
-// ============================================
-// Mostra um único anúncio (ex: loja de instrumentos) por baixo do perfil.
-// Se houver vários ativos, escolhe um à sorte para dar rotatividade entre
-// visitas — mantém o perfil do professor limpo, sem vários anúncios juntos.
-async function carregarSponsorPerfil() {
-    const slot = $('#profile-sponsor-slot');
-    if (!slot) return;
-
-    try {
-        const { data, error } = await supabaseClient
-            .from('sponsors')
-            .select('*')
-            .eq('active', true)
-            .eq('style', 'profile');
-
-        if (error) throw error;
-        if (!data || data.length === 0) return;
-
-        const sponsor = data[Math.floor(Math.random() * data.length)];
-
-        const cta = sponsor.link_url
-            ? `<a href="${escapeHtml(sponsor.link_url)}" target="_blank" rel="noopener sponsored" class="btn-primary profile-sponsor-cta sponsor-link" data-sponsor-id="${sponsor.id}">Saiba mais</a>`
-            : '';
-
-        slot.innerHTML = `
-            <div class="profile-sponsor-banner">
-                <span class="profile-sponsor-tag">Publicidade</span>
-                <div class="profile-sponsor-body">
-                    <i class="fas fa-store profile-sponsor-icon"></i>
-                    <div>
-                        <strong>${escapeHtml(sponsor.title)}</strong>
-                        <p>${escapeHtml(sponsor.description)}</p>
+<main>
+    <div class="container profile-page">
+        <div id="profile-content">
+            <!-- Estado de carregamento -->
+            <div class="skeleton" style="max-width:640px;margin:0 auto;">
+                <div style="display:flex;gap:14px;">
+                    <div class="skeleton-avatar" style="width:88px;height:88px;"></div>
+                    <div style="flex:1;">
+                        <div class="skeleton-line medium"></div>
+                        <div class="skeleton-line short" style="margin-top:6px;"></div>
                     </div>
                 </div>
-                ${cta}
+                <div class="skeleton-line long"></div>
+                <div class="skeleton-line long"></div>
+                <div class="skeleton-line medium"></div>
             </div>
-        `;
-    } catch (err) {
-        console.error('Erro ao carregar patrocínio de perfil:', err);
-    }
-}
+        </div>
+    </div>
+</main>
 
-// Regista o clique no anúncio, tal como acontece no site principal
-document.addEventListener('click', (e) => {
-    const link = e.target.closest('.sponsor-link');
-    if (link && link.dataset.sponsorId) {
-        supabaseClient.rpc('registar_click_patrocinio', { p_sponsor_id: link.dataset.sponsorId })
-            .then(({ error }) => { if (error) console.error('Erro ao registar clique:', error); });
-    }
-});
+<!-- MODAL DE SOLICITAÇÃO DE AULA -->
+<div id="modal-contacto" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <button class="modal-close" onclick="fecharModal()">&times;</button>
+        <div class="modal-header">
+            <h3><i class="fas fa-paper-plane"></i> Pedir Aula</h3>
+            <p id="modal-teacher-subtitle">Envia uma mensagem para a nossa equipa intermediar</p>
+        </div>
+        <form id="form-lead">
+            <input type="hidden" id="lead-teacher-name" />
+            <input type="hidden" id="lead-teacher-id" />
 
-// ============================================
-// MODAL DE CONTACTO (Pedir Aula)
-// ============================================
-function abrirModalContacto(nome, teacherId) {
-    $('#modal-teacher-subtitle').textContent = `Solicitar contacto com ${nome}`;
-    $('#lead-teacher-name').value = nome;
-    const idField = $('#lead-teacher-id');
-    if (idField) idField.value = teacherId || '';
+            <!-- HONEYPOT -->
+            <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
+                <label for="l-website">Não preencher este campo</label>
+                <input type="text" id="l-website" name="website" tabindex="-1" autocomplete="off" />
+            </div>
 
-    const lInstr = $('#l-instrumento');
-    lInstr.innerHTML = '<option value="">Selecione o instrumento...</option>';
-    INSTRUMENTOS.forEach(i => {
-        lInstr.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(i)}">${escapeHtml(i)}</option>`);
-    });
+            <div class="field">
+                <label for="l-nome">O teu Nome Completo *</label>
+                <input type="text" id="l-nome" placeholder="Ex: Mário Tembe" required />
+            </div>
+            <div class="field">
+                <label for="l-whatsapp">O teu WhatsApp *</label>
+                <input type="tel" id="l-whatsapp" placeholder="Ex: 84 123 4567" required />
+            </div>
+            <div class="field">
+                <label for="l-instrumento">Instrumento Pretendido *</label>
+                <select id="l-instrumento" required>
+                    <option value="">Selecione...</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 12px;">
+                <i class="fas fa-paper-plane"></i> Confirmar e Enviar Pedido
+            </button>
+        </form>
+    </div>
+</div>
 
-    $('#modal-contacto').style.display = 'flex';
-    $('#l-nome').focus();
-}
+<div id="toast-container"></div>
 
-function fecharModal() {
-    $('#modal-contacto').style.display = 'none';
-    const formLead = $('#form-lead');
-    if (formLead) {
-        formLead.reset();
-        limparErrosFormulario(formLead);
-    }
-}
+<footer class="footer">
+    <div class="container">
+        <div class="footer-bottom">
+            <span>© 2026 AulaPerto · Todos os direitos reservados.</span>
+            <span>Feito com ♥ em Moçambique</span>
+        </div>
+    </div>
+</footer>
 
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && $('#modal-contacto').style.display === 'flex') {
-        fecharModal();
-    }
-});
-
-$('#modal-contacto').addEventListener('click', (e) => {
-    if (e.target.id === 'modal-contacto') fecharModal();
-});
-
-// ============================================
-// SUBMETER SOLICITAÇÃO (LEADS)
-// ============================================
-$('#form-lead').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const btnSubmit = form.querySelector('button[type="submit"]');
-    const originalBtnContent = btnSubmit.innerHTML;
-
-    limparErrosFormulario(form);
-
-    // Honeypot
-    if ($('#l-website') && $('#l-website').value.trim() !== '') {
-        fecharModal();
-        showToast('Obrigado! Pedido registado.', 'success');
-        return;
-    }
-
-    const alunoNome = $('#l-nome').value.trim();
-    const rawWhatsapp = $('#l-whatsapp').value.trim();
-    const instrumento = $('#l-instrumento').value;
-    const professorNome = $('#lead-teacher-name').value;
-    const professorIdRaw = $('#lead-teacher-id') ? $('#lead-teacher-id').value : '';
-
-    let temErro = false;
-
-    if (alunoNome.length < 3) {
-        mostrarErroCampo('#l-nome', 'Insira o seu nome completo.');
-        temErro = true;
-    }
-    if (!validarTelefoneMZ(rawWhatsapp)) {
-        mostrarErroCampo('#l-whatsapp', 'Número inválido (ex: 841234567).');
-        temErro = true;
-    }
-    if (!instrumento) {
-        mostrarErroCampo('#l-instrumento', 'Selecione o instrumento.');
-        temErro = true;
-    }
-    if (temErro) return;
-
-    setButtonLoading(btnSubmit, true);
-    const alunoWhatsapp = formatarTelefoneMZ(rawWhatsapp);
-
-    try {
-        const { error } = await supabaseClient.from('leads').insert([{
-            student_name: alunoNome,
-            student_whatsapp: alunoWhatsapp,
-            teacher_name: professorNome,
-            teacher_id: professorIdRaw ? Number(professorIdRaw) : null,
-            instrument: instrumento,
-            status: 'pending'
-        }]);
-        if (error) throw error;
-
-        fecharModal();
-        showToast(`Obrigado, ${alunoNome}! Pedido registado.`, 'success');
-    } catch (err) {
-        console.error('Erro:', err);
-        showToast('Erro ao enviar pedido. Tenta novamente.', 'error');
-    } finally {
-        setButtonLoading(btnSubmit, false, originalBtnContent);
-    }
-});
-
-// ============================================
-// INICIALIZAÇÃO
-// ============================================
-document.addEventListener('DOMContentLoaded', () => {
-    carregarPerfil();
-});
+<script src="professor.js"></script>
+</body>
+</html>
