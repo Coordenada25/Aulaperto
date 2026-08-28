@@ -90,6 +90,14 @@ function renderStars(rating) {
     return stars;
 }
 
+// Corta a biografia para um resumo curto no card da grelha — a versão
+// completa só aparece na página individual do professor (padrão Superprof).
+function truncarTexto(texto, max = 100) {
+    if (!texto) return '';
+    if (texto.length <= max) return texto;
+    return texto.slice(0, max).trim() + '…';
+}
+
 function setButtonLoading(btn, isLoading, originalText) {
     if (isLoading) {
         btn.classList.add('btn-loading');
@@ -289,7 +297,7 @@ function renderTeacherCard(p) {
             <div class="card-tags">
                 ${p.instrumentos.map(i => `<span class="card-tag card-tag-instrument">${escapeHtml(i)}</span>`).join('')}
             </div>
-            <p class="card-bio">${escapeHtml(p.bio) || 'Professor particular de música disponível para aulas.'}</p>
+            <p class="card-bio">${p.bio ? escapeHtml(truncarTexto(p.bio, 100)) : 'Professor particular de música disponível para aulas.'}</p>
             <div class="card-footer">
                 <div class="card-price">${p.preco} MT <span>/ aula</span></div>
                 <button class="btn-whatsapp btn-pedir-aula"
