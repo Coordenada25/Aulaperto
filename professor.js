@@ -6,8 +6,9 @@ const SUPABASE_KEY = "sb_publishable_x0Ehx6SckG0JHXqdvOusXw_5LG12KPm";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const INSTRUMENTOS = [
-    "Piano", "Guitarra", "Violão", "Bateria", "Canto",
-    "Teclado", "Saxofone", "Violino", "Baixo", "Ukulele"
+    "Piano", "Guitarra", "Saxofone", "Clarinete", "Guitarra Baixo",
+    "Contrabaixo", "Viola de Arco", "Violino", "Violoncelo",
+    "Guitarra Clássica", "Voz", "Ukulele", "Flauta Doce", "Timbila", "Mbira"
 ];
 
 const $ = (s) => document.querySelector(s);
@@ -155,6 +156,16 @@ async function carregarPerfil() {
 
         professorAtual = data;
         renderPerfil(data);
+
+        // Analytics: regista a visita a este perfil específico, para sabermos
+        // quais professores geram mais interesse (não só quantos pedidos fecham).
+        if (typeof gtag === 'function') {
+            gtag('event', 'view_professor_profile', {
+                professor_name: data.name,
+                professor_slug: data.slug,
+                instrument: (data.instruments || [])[0] || ''
+            });
+        }
 
         // Ajusta título e descrição da aba do navegador para este professor
         document.title = `${data.name} - Professor de ${(data.instruments || [])[0] || 'Música'} | AulaPerto`;
@@ -392,6 +403,14 @@ $('#form-lead').addEventListener('submit', async (e) => {
 
         fecharModal();
         showToast(`Obrigado, ${alunoNome}! Pedido registado.`, 'success');
+
+        // Analytics: marca a conversão real (visita ao perfil → pedido de aula).
+        if (typeof gtag === 'function') {
+            gtag('event', 'gerar_lead', {
+                teacher_name: professorNome,
+                instrument: instrumento
+            });
+        }
     } catch (err) {
         console.error('Erro:', err);
         showToast('Erro ao enviar pedido. Tenta novamente.', 'error');
