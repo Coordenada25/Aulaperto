@@ -829,30 +829,40 @@ $('#t-provincia').addEventListener('change', async function() {
 // ============================================
 // NAVEGAÇÃO ENTRE VIEWS
 // ============================================
+function mudarView(view) {
+    $$('.view').forEach(v => v.classList.remove('active'));
+    $$('.nav-btn').forEach(b => b.classList.remove('active'));
+
+    const targetView = $(`#view-${view}`);
+    if (targetView) targetView.classList.add('active');
+
+    const btnAlvo = document.querySelector(`.nav-btn[data-view="${view}"]`);
+    if (btnAlvo) btnAlvo.classList.add('active');
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (view === 'search') renderTeachers();
+    if (view === 'about') updateStats();
+}
+
 $$('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const view = btn.dataset.view;
-        
-        $$('.view').forEach(v => v.classList.remove('active'));
-        $$('.nav-btn').forEach(b => b.classList.remove('active'));
-        
-        const targetView = $(`#view-${view}`);
-        if (targetView) targetView.classList.add('active');
-        btn.classList.add('active');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        
-        if (view === 'search') renderTeachers();
-        if (view === 'about') updateStats();
-    });
+    btn.addEventListener('click', () => mudarView(btn.dataset.view));
 });
+
+// Logo no cabeçalho — clicar leva sempre de volta à pesquisa principal
+const logoHomeLink = $('#logo-home-link');
+if (logoHomeLink) {
+    logoHomeLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        mudarView('search');
+    });
+}
 
 // Links do footer
 $$('.footer-links a').forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
-        const view = link.dataset.view;
-        const btn = document.querySelector(`.nav-btn[data-view="${view}"]`);
-        if (btn) btn.click();
+        mudarView(link.dataset.view);
     });
 });
 
