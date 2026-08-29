@@ -204,7 +204,7 @@ function renderPerfil(p) {
                     <div class="card-name" style="font-size:22px;">
                         ${escapeHtml(p.name)}
                         ${featuredBadge}
-                        <span class="badge badge-gold"><i class="fas fa-check-circle"></i> Aprovado</span>
+                        <span class="badge-verified" title="Professor verificado"><i class="fas fa-check"></i></span>
                     </div>
                     ${ratingHTML}
                     <div class="card-experience"><i class="fas fa-briefcase"></i> ${p.experience || 1} ${p.experience === 1 ? 'ano' : 'anos'} de experiência</div>
@@ -216,7 +216,7 @@ function renderPerfil(p) {
                 ${instrumentos.map(i => `<span class="card-tag card-tag-instrument">${escapeHtml(i)}</span>`).join('')}
             </div>
 
-            <p class="card-bio profile-bio">${escapeHtml(p.bio) || 'Professor particular de música disponível para aulas.'}</p>
+            <p class="profile-bio">${escapeHtml(p.bio) || 'Professor particular de música disponível para aulas.'}</p>
 
             ${p.course_program ? `
             <div class="profile-programa">
