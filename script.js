@@ -289,18 +289,14 @@ function renderTeacherCard(p) {
                         ${escapeHtml(p.nome)}
                         <span class="badge-verified" title="Professor verificado"><i class="fas fa-check"></i></span>
                     </span>
+                    <span class="card-photo-location"><i class="fas fa-map-pin"></i> ${escapeHtml(p.bairro)}</span>
                 </div>
             </div>
             <div class="card-body">
-                <div class="card-meta-row">
-                    ${ratingHTML}
-                    <div class="card-experience"><i class="fas fa-briefcase"></i> ${p.experiencia || 1} ${p.experiencia === 1 ? 'ano' : 'anos'} de exp.</div>
-                </div>
-                <div class="card-location"><i class="fas fa-map-pin"></i> ${escapeHtml(p.bairro)}</div>
-                <div class="card-tags">
-                    ${p.instrumentos.map(i => `<span class="card-tag card-tag-instrument">${escapeHtml(i)}</span>`).join('')}
-                </div>
-                <p class="card-bio">${p.bio ? escapeHtml(truncarTexto(p.bio, 100)) : 'Professor particular de música disponível para aulas.'}</p>
+                ${ratingHTML}
+                <p class="card-subject-bio">
+                    <strong>${escapeHtml(p.instrumentos[0] || 'Música')}</strong> — ${p.bio ? escapeHtml(truncarTexto(p.bio, 80)) : 'Professor particular de música disponível para aulas.'}
+                </p>
                 <div class="card-footer">
                     <div class="card-price">${p.preco} MT <span>/ aula</span></div>
                     <button class="btn-whatsapp btn-pedir-aula"
