@@ -272,50 +272,54 @@ function renderTeacherCard(p) {
         ? `<div class="card-rating">${renderStars(p.avaliacao)} ${p.avaliacao.toFixed(1)} <span>(${p.total_avaliacoes})</span></div>`
         : `<div class="card-rating"><span class="badge-new"><i class="fas fa-sparkles"></i> Novo</span></div>`;
 
-    const featuredBadge = p.featured
-        ? `<span class="badge badge-featured"><i class="fas fa-star"></i> Destaque</span>`
+    const featuredRibbon = p.featured
+        ? `<span class="card-photo-featured"><i class="fas fa-star"></i> Destaque</span>`
         : '';
 
     return `
-        <div class="teacher-card ${p.featured ? 'is-featured' : ''}">
-            <div class="card-top">
+        <div class="teacher-card ${p.featured ? 'is-featured' : ''} ${p.slug ? 'card-clickable' : ''}" data-slug="${escapeHtml(p.slug || '')}">
+            <div class="card-photo-banner">
                 ${p.foto
-                    ? `<img src="${escapeHtml(p.foto)}" alt="${escapeHtml(p.nome)}" class="card-avatar" style="object-fit:cover;" />`
-                    : `<div class="card-avatar" style="background: ${getInitialsColor(p.nome)}">${initials(p.nome)}</div>`
+                    ? `<img src="${escapeHtml(p.foto)}" alt="${escapeHtml(p.nome)}" class="card-photo-img" />`
+                    : `<div class="card-photo-img card-photo-initials" style="background: ${getInitialsColor(p.nome)}">${initials(p.nome)}</div>`
                 }
-                <div class="card-info">
-                    <div class="card-name">
+                ${featuredRibbon}
+                <div class="card-photo-overlay">
+                    <span class="card-photo-name">
                         ${escapeHtml(p.nome)}
-                        ${featuredBadge}
-                        <span class="badge badge-gold"><i class="fas fa-check-circle"></i> Aprovado</span>
-                    </div>
-                    ${ratingHTML}
-                    <div class="card-experience"><i class="fas fa-briefcase"></i> ${p.experiencia || 1} ${p.experiencia === 1 ? 'ano' : 'anos'} de exp.</div>
-                    <div class="card-location"><i class="fas fa-map-pin"></i> ${escapeHtml(p.bairro)}</div>
+                        <span class="badge-verified" title="Professor verificado"><i class="fas fa-check"></i></span>
+                    </span>
                 </div>
             </div>
-            <div class="card-tags">
-                ${p.instrumentos.map(i => `<span class="card-tag card-tag-instrument">${escapeHtml(i)}</span>`).join('')}
+            <div class="card-body">
+                <div class="card-meta-row">
+                    ${ratingHTML}
+                    <div class="card-experience"><i class="fas fa-briefcase"></i> ${p.experiencia || 1} ${p.experiencia === 1 ? 'ano' : 'anos'} de exp.</div>
+                </div>
+                <div class="card-location"><i class="fas fa-map-pin"></i> ${escapeHtml(p.bairro)}</div>
+                <div class="card-tags">
+                    ${p.instrumentos.map(i => `<span class="card-tag card-tag-instrument">${escapeHtml(i)}</span>`).join('')}
+                </div>
+                <p class="card-bio">${p.bio ? escapeHtml(truncarTexto(p.bio, 100)) : 'Professor particular de música disponível para aulas.'}</p>
+                <div class="card-footer">
+                    <div class="card-price">${p.preco} MT <span>/ aula</span></div>
+                    <button class="btn-whatsapp btn-pedir-aula"
+                        data-id="${p.id}"
+                        data-nome="${escapeHtml(p.nome)}"
+                        data-instrumentos="${escapeHtml(p.instrumentos.join(', '))}">
+                        <i class="fas fa-paper-plane"></i> Pedir Aula
+                    </button>
+                </div>
+                ${p.slug ? `
+                <div class="card-links">
+                    <a class="card-link-profile" href="professor.html?p=${encodeURIComponent(p.slug)}" target="_blank" rel="noopener">
+                        <i class="fas fa-id-badge"></i> Ver perfil completo
+                    </a>
+                    <button class="btn-share-profile" data-slug="${escapeHtml(p.slug)}" title="Copiar link do perfil para partilhar">
+                        <i class="fas fa-share-nodes"></i>
+                    </button>
+                </div>` : ''}
             </div>
-            <p class="card-bio">${p.bio ? escapeHtml(truncarTexto(p.bio, 100)) : 'Professor particular de música disponível para aulas.'}</p>
-            <div class="card-footer">
-                <div class="card-price">${p.preco} MT <span>/ aula</span></div>
-                <button class="btn-whatsapp btn-pedir-aula"
-                    data-id="${p.id}"
-                    data-nome="${escapeHtml(p.nome)}"
-                    data-instrumentos="${escapeHtml(p.instrumentos.join(', '))}">
-                    <i class="fas fa-paper-plane"></i> Pedir Aula
-                </button>
-            </div>
-            ${p.slug ? `
-            <div class="card-links">
-                <a class="card-link-profile" href="professor.html?p=${encodeURIComponent(p.slug)}" target="_blank" rel="noopener">
-                    <i class="fas fa-id-badge"></i> Ver perfil completo
-                </a>
-                <button class="btn-share-profile" data-slug="${escapeHtml(p.slug)}" title="Copiar link do perfil para partilhar">
-                    <i class="fas fa-share-nodes"></i>
-                </button>
-            </div>` : ''}
         </div>
     `;
 }
@@ -573,7 +577,7 @@ function fecharModal() {
     }
 }
 
-// Event Delegation para botões "Pedir Aula" e "Partilhar Perfil"
+// Event Delegation para botões "Pedir Aula", "Partilhar Perfil", e o cartão inteiro
 $('#results-grid').addEventListener('click', (e) => {
     const shareBtn = e.target.closest('.btn-share-profile');
     if (shareBtn) {
@@ -584,6 +588,15 @@ $('#results-grid').addEventListener('click', (e) => {
     const btn = e.target.closest('.btn-pedir-aula');
     if (btn) {
         abrirModalContacto(btn.dataset.nome, btn.dataset.instrumentos, btn.dataset.id);
+        return;
+    }
+    if (e.target.closest('.card-link-profile')) {
+        return; // deixa o link nativo abrir o perfil normalmente
+    }
+    // Clique em qualquer outro sítio do cartão leva ao perfil do professor
+    const card = e.target.closest('.card-clickable');
+    if (card && card.dataset.slug) {
+        window.open(`professor.html?p=${encodeURIComponent(card.dataset.slug)}`, '_blank');
     }
 });
 
