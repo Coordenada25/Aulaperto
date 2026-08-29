@@ -397,17 +397,17 @@ a { text-decoration: none; color: inherit; }
 .card-clickable { cursor: pointer; }
 
 .card-body {
-    padding: 16px 20px 20px;
+    padding: 14px 18px 18px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 /* Banner da foto — grande, com o nome sobreposto por cima */
 .card-photo-banner {
     position: relative;
     width: 100%;
-    height: 190px;
+    height: 160px;
     background: #E2E8F0;
 }
 
@@ -415,6 +415,7 @@ a { text-decoration: none; color: inherit; }
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center 20%;
     display: block;
 }
 
@@ -446,8 +447,11 @@ a { text-decoration: none; color: inherit; }
 .card-photo-overlay {
     position: absolute;
     left: 0; right: 0; bottom: 0;
-    padding: 28px 14px 12px;
+    padding: 24px 14px 10px;
     background: linear-gradient(to top, rgba(15,23,42,0.85), rgba(15,23,42,0));
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
 .card-photo-name {
@@ -459,6 +463,27 @@ a { text-decoration: none; color: inherit; }
     align-items: center;
     gap: 6px;
 }
+
+.card-photo-location {
+    color: rgba(255,255,255,0.9);
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.card-subject-bio {
+    font-size: 13.5px;
+    color: #334155;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.card-subject-bio strong { color: var(--cor-texto); }
 
 /* Selo de verificado — círculo azul com check, estilo redes sociais */
 .badge-verified {
