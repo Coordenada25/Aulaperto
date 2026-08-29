@@ -381,12 +381,11 @@ a { text-decoration: none; color: inherit; }
     background: var(--cor-card);
     border: 1px solid var(--cor-borda);
     border-radius: var(--radius);
-    padding: 20px;
+    overflow: hidden;
     transition: var(--transition);
     box-shadow: var(--sombra-suave);
     display: flex;
     flex-direction: column;
-    gap: 12px;
 }
 
 .teacher-card:hover {
@@ -395,20 +394,92 @@ a { text-decoration: none; color: inherit; }
     border-color: var(--cor-terciaria);
 }
 
-.card-top { display: flex; gap: 14px; align-items: flex-start; }
+.card-clickable { cursor: pointer; }
 
-.card-avatar {
-    width: 96px;
-    height: 96px;
-    border-radius: 14px;
-    color: white;
+.card-body {
+    padding: 16px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Banner da foto — grande, com o nome sobreposto por cima */
+.card-photo-banner {
+    position: relative;
+    width: 100%;
+    height: 190px;
+    background: #E2E8F0;
+}
+
+.card-photo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.card-photo-initials {
     display: flex;
     align-items: center;
     justify-content: center;
+    color: white;
     font-family: 'Fraunces', serif;
-    font-size: 28px;
+    font-size: 42px;
     font-weight: 700;
+}
+
+.card-photo-featured {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, #F59E0B, #F97316);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.card-photo-overlay {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 28px 14px 12px;
+    background: linear-gradient(to top, rgba(15,23,42,0.85), rgba(15,23,42,0));
+}
+
+.card-photo-name {
+    color: white;
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 17px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Selo de verificado — círculo azul com check, estilo redes sociais */
+.badge-verified {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 17px;
+    height: 17px;
+    background: var(--cor-primaria);
+    color: white;
+    border-radius: 50%;
+    font-size: 9px;
     flex-shrink: 0;
+}
+
+.card-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .card-name {
@@ -1235,6 +1306,9 @@ a { text-decoration: none; color: inherit; }
 .profile-bio {
     font-size: 15px;
     line-height: 1.7;
+    color: #334155;
+    text-align: justify;
+    text-justify: inter-word;
 }
 
 .profile-footer {
