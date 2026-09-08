@@ -18,6 +18,7 @@
     --radius-pequeno: 10px;
     --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     --max-width: 1120px;
+    --card-photo-ratio: 1.4; /* usado pelo cropper para bater certo com o cartão */
 }
 
 /* ============================================
@@ -403,11 +404,12 @@ a { text-decoration: none; color: inherit; }
     gap: 8px;
 }
 
-/* Banner da foto — grande, com o nome sobreposto por cima */
+/* Banner da foto — agora maior, engloba também o selo de avaliação/"Novo",
+   para a foto nunca aparecer cortada de forma estranha */
 .card-photo-banner {
     position: relative;
     width: 100%;
-    height: 160px;
+    height: 215px;
     background: #E2E8F0;
 }
 
@@ -442,6 +444,39 @@ a { text-decoration: none; color: inherit; }
     border-radius: 999px;
     font-size: 11px;
     font-weight: 700;
+    z-index: 2;
+}
+
+/* Selo de avaliação / "Novo" — agora vive dentro da própria foto,
+   no canto superior direito, para a foto ocupar todo o espaço até aqui */
+.card-photo-rating {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(4px);
+    color: #B45309;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(15,23,42,0.15);
+}
+
+.card-photo-rating span {
+    color: var(--cor-texto-suave);
+    font-weight: 500;
+}
+
+.card-photo-rating .badge-new {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #1D4ED8;
 }
 
 .card-photo-overlay {
@@ -776,6 +811,93 @@ a { text-decoration: none; color: inherit; }
 }
 
 .success-message.show { display: block; }
+
+/* ============================================
+   PRÉ-VISUALIZAÇÃO DA FOTO RECORTADA (form)
+   ============================================ */
+.foto-preview-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--cor-fundo);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--radius-pequeno);
+    padding: 10px;
+}
+
+.foto-preview-thumb {
+    width: 140px;
+    aspect-ratio: var(--card-photo-ratio);
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+    flex-shrink: 0;
+    background: #E2E8F0;
+}
+
+.btn-refazer-crop {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: var(--radius-pequeno);
+    border: 1px solid var(--cor-borda);
+    background: white;
+    color: var(--cor-texto-suave);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-refazer-crop:hover {
+    border-color: var(--cor-primaria);
+    color: var(--cor-primaria);
+}
+
+/* ============================================
+   MODAL DE RECORTE DE FOTO (CROPPER)
+   ============================================ */
+.modal-content-cropper {
+    max-width: 480px;
+}
+
+.cropper-image-wrapper {
+    width: 100%;
+    height: 320px;
+    background: #0F172A;
+    border-radius: var(--radius-pequeno);
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.cropper-image-wrapper img {
+    display: block;
+    max-width: 100%;
+}
+
+.cropper-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-cropper-secundario {
+    padding: 12px 20px;
+    border-radius: var(--radius-pequeno);
+    border: 1px solid var(--cor-borda);
+    background: white;
+    color: var(--cor-texto-suave);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-cropper-secundario:hover {
+    border-color: #CBD5E1;
+    background: var(--cor-fundo);
+}
 
 /* ============================================
    PÁGINA SOBRE
@@ -1219,6 +1341,8 @@ a { text-decoration: none; color: inherit; }
     .search-panel { padding: 16px; }
     .admin-table { font-size: 11px; }
     .admin-table th, .admin-table td { padding: 6px; }
+    .foto-preview-card { flex-direction: column; align-items: stretch; }
+    .foto-preview-thumb { width: 100%; }
 }
 
 /* ============================================
