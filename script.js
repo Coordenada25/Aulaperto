@@ -21,9 +21,21 @@ const INSTRUMENTOS = [
 const CACHE_KEY = "aulaperto_teachers_cache";
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 
+// Proporção largura/altura do quadro da foto no cartão (bate certo com o
+// .card-photo-banner do CSS) — usada para o cropper recortar exatamente
+// como a foto vai aparecer no site.
+const CROP_ASPECT_RATIO = 1.4;
+const FOTO_MAX_BYTES = 3 * 1024 * 1024;
+const FOTO_TIPOS_ACEITES = ['image/jpeg', 'image/png', 'image/webp'];
+
 let professores = [];
 let allLocations = [];
 let sponsors = [];
+
+// Estado do cropper de foto do formulário de cadastro
+let cropperInstance = null;
+let cropperObjectUrl = null;
+let fotoRecortadaBlob = null; // Blob final já recortado, pronto para upload
 
 // DOM Helpers
 const $ = (s) => document.querySelector(s);
@@ -146,27 +158,147 @@ async function copiarLink(url) {
 }
 
 // ============================================
+// CROPPER DE FOTO (cadastro de professor)
+// ============================================
+// Abre o modal de recorte assim que o professor escolhe um ficheiro.
+// A proporção é fixa (CROP_ASPECT_RATIO) para bater certo com o cartão.
+function abrirCropperModal(file) {
+    if (cropperObjectUrl) URL.revokeObjectURL(cropperObjectUrl);
+    cropperObjectUrl = URL.createObjectURL(file);
+
+    const img = $('#cropper-image');
+    img.src = cropperObjectUrl;
+
+    $('#modal-cropper').style.display = 'flex';
+
+    // Espera a imagem carregar antes de inicializar o Cropper.js
+    img.onload = () => {
+        if (cropperInstance) {
+            cropperInstance.destroy();
+        }
+        cropperInstance = new Cropper(img, {
+            aspectRatio: CROP_ASPECT_RATIO,
+            viewMode: 1,
+            dragMode: 'move',
+            autoCropArea: 1,
+            background: false,
+            responsive: true,
+            guides: false
+        });
+    };
+}
+
+function fecharCropperModal() {
+    $('#modal-cropper').style.display = 'none';
+    if (cropperInstance) {
+        cropperInstance.destroy();
+        cropperInstance = null;
+    }
+    if (cropperObjectUrl) {
+        URL.revokeObjectURL(cropperObjectUrl);
+        cropperObjectUrl = null;
+    }
+    // Se o professor cancelar sem nunca ter confirmado um recorte,
+    // limpa o input para não ficar um ficheiro "por recortar" pendente.
+    if (!fotoRecortadaBlob) {
+        $('#t-foto').value = '';
+    }
+}
+
+function mostrarPreviewFoto(blobUrl) {
+    const wrapper = $('#foto-preview-wrapper');
+    const img = $('#foto-preview-img');
+    img.src = blobUrl;
+    wrapper.style.display = 'block';
+}
+
+function confirmarCrop() {
+    if (!cropperInstance) return;
+
+    const canvas = cropperInstance.getCroppedCanvas({
+        width: 700,
+        height: Math.round(700 / CROP_ASPECT_RATIO),
+        imageSmoothingQuality: 'high'
+    });
+
+    canvas.toBlob((blob) => {
+        if (!blob) {
+            showToast('Não foi possível processar a foto. Tenta novamente.', 'error');
+            return;
+        }
+        if (blob.size > FOTO_MAX_BYTES) {
+            showToast('A foto recortada ainda ficou grande demais. Tenta ampliar menos.', 'error');
+            return;
+        }
+        fotoRecortadaBlob = blob;
+        mostrarPreviewFoto(URL.createObjectURL(blob));
+        $('#modal-cropper').style.display = 'none';
+        if (cropperInstance) {
+            cropperInstance.destroy();
+            cropperInstance = null;
+        }
+    }, 'image/jpeg', 0.9);
+}
+
+function limparEstadoFoto() {
+    fotoRecortadaBlob = null;
+    const wrapper = $('#foto-preview-wrapper');
+    if (wrapper) wrapper.style.display = 'none';
+    const previewImg = $('#foto-preview-img');
+    if (previewImg) previewImg.src = '';
+    const inputFoto = $('#t-foto');
+    if (inputFoto) inputFoto.value = '';
+}
+
+const inputFotoEl = $('#t-foto');
+if (inputFotoEl) {
+    inputFotoEl.addEventListener('change', function () {
+        const file = this.files && this.files[0];
+        if (!file) return;
+
+        if (!FOTO_TIPOS_ACEITES.includes(file.type)) {
+            showToast('Formato de imagem inválido. Usa JPG, PNG ou WEBP.', 'error');
+            this.value = '';
+            return;
+        }
+        if (file.size > FOTO_MAX_BYTES) {
+            showToast('A imagem é demasiado grande (máx. 3MB).', 'error');
+            this.value = '';
+            return;
+        }
+
+        fotoRecortadaBlob = null; // vai ser substituído pelo recorte confirmado
+        abrirCropperModal(file);
+    });
+}
+
+const btnRefazerCrop = $('#btn-refazer-crop');
+if (btnRefazerCrop) {
+    btnRefazerCrop.addEventListener('click', () => {
+        const file = $('#t-foto').files && $('#t-foto').files[0];
+        if (file) abrirCropperModal(file);
+    });
+}
+
+const btnCropperConfirmar = $('#btn-cropper-confirmar');
+if (btnCropperConfirmar) btnCropperConfirmar.addEventListener('click', confirmarCrop);
+
+const btnCropperCancelar = $('#btn-cropper-cancelar');
+if (btnCropperCancelar) btnCropperCancelar.addEventListener('click', fecharCropperModal);
+
+// ============================================
 // UPLOAD DE FOTO
 // ============================================
-const FOTO_MAX_BYTES = 3 * 1024 * 1024;
-const FOTO_TIPOS_ACEITES = ['image/jpeg', 'image/png', 'image/webp'];
+async function uploadFotoProfessor(fileOrBlob) {
+    if (!fileOrBlob) return null;
 
-async function uploadFotoProfessor(file) {
-    if (!file) return null;
-    if (!FOTO_TIPOS_ACEITES.includes(file.type)) {
-        throw new Error('Formato de imagem inválido. Usa JPG, PNG ou WEBP.');
-    }
-    if (file.size > FOTO_MAX_BYTES) {
-        throw new Error('A imagem é demasiado grande (máx. 3MB).');
-    }
-    
-    const ext = file.name.split('.').pop().toLowerCase();
+    const ext = fileOrBlob.type === 'image/png' ? 'png' : 'jpg';
     const nomeUnico = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-    
+
     const { error: uploadError } = await supabaseClient
         .storage
         .from('professor-photos')
-        .upload(nomeUnico, file, { cacheControl: '3600', upsert: false });
+        .upload(nomeUnico, fileOrBlob, { cacheControl: '3600', upsert: false, contentType: fileOrBlob.type });
     
     if (uploadError) throw uploadError;
     
@@ -268,9 +400,11 @@ function renderSkeletons() {
 
 function renderTeacherCard(p) {
     const temAvaliacoes = p.total_avaliacoes && p.total_avaliacoes > 0 && p.avaliacao;
+    // O selo de avaliação / "Novo" vive agora DENTRO da foto (canto superior
+    // direito), para a foto ocupar o cartão todo até onde este selo aparece.
     const ratingHTML = temAvaliacoes
-        ? `<div class="card-rating">${renderStars(p.avaliacao)} ${p.avaliacao.toFixed(1)} <span>(${p.total_avaliacoes})</span></div>`
-        : `<div class="card-rating"><span class="badge-new"><i class="fas fa-sparkles"></i> Novo</span></div>`;
+        ? `<div class="card-photo-rating">${renderStars(p.avaliacao)} ${p.avaliacao.toFixed(1)} <span>(${p.total_avaliacoes})</span></div>`
+        : `<div class="card-photo-rating"><span class="badge-new"><i class="fas fa-sparkles"></i> Novo</span></div>`;
 
     const featuredRibbon = p.featured
         ? `<span class="card-photo-featured"><i class="fas fa-star"></i> Destaque</span>`
@@ -284,6 +418,7 @@ function renderTeacherCard(p) {
                     : `<div class="card-photo-img card-photo-initials" style="background: ${getInitialsColor(p.nome)}">${initials(p.nome)}</div>`
                 }
                 ${featuredRibbon}
+                ${ratingHTML}
                 <div class="card-photo-overlay">
                     <span class="card-photo-name">
                         ${escapeHtml(p.nome)}
@@ -293,7 +428,6 @@ function renderTeacherCard(p) {
                 </div>
             </div>
             <div class="card-body">
-                ${ratingHTML}
                 <p class="card-subject-bio">
                     ${p.bio ? escapeHtml(truncarTexto(p.bio, 90)) : 'Professor particular de música disponível para aulas.'}
                 </p>
@@ -608,8 +742,9 @@ document.addEventListener('click', (e) => {
 
 // Fechar modal com Escape
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && $('#modal-contacto').style.display === 'flex') {
-        fecharModal();
+    if (e.key === 'Escape') {
+        if ($('#modal-contacto').style.display === 'flex') fecharModal();
+        if ($('#modal-cropper') && $('#modal-cropper').style.display === 'flex') fecharCropperModal();
     }
 });
 
@@ -776,12 +911,11 @@ $('#teacher-form').addEventListener('submit', async (e) => {
     setButtonLoading(btnSubmit, true);
     
     try {
-        // Upload da foto
+        // Upload da foto — usa o recorte já confirmado no cropper, se existir
         let fotoUrl = null;
-        const ficheiroFoto = $('#t-foto') && $('#t-foto').files[0];
-        if (ficheiroFoto) {
+        if (fotoRecortadaBlob) {
             try {
-                fotoUrl = await uploadFotoProfessor(ficheiroFoto);
+                fotoUrl = await uploadFotoProfessor(fotoRecortadaBlob);
             } catch (fotoErr) {
                 showToast(fotoErr.message || 'Erro ao enviar foto.', 'error');
                 setButtonLoading(btnSubmit, false, originalBtnContent);
@@ -819,6 +953,7 @@ $('#teacher-form').addEventListener('submit', async (e) => {
         document.querySelectorAll('#t-instrumentos .chip.active').forEach(c => c.classList.remove('active'));
         const outroWrapper = $('#instrumento-outro-wrapper');
         if (outroWrapper) outroWrapper.style.display = 'none';
+        limparEstadoFoto();
         localStorage.removeItem(CACHE_KEY);
         
     } catch (err) {
