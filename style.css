@@ -1421,34 +1421,128 @@ a { text-decoration: none; color: inherit; }
     background: var(--cor-card);
     border: 1px solid var(--cor-borda);
     border-radius: var(--radius);
-    padding: 28px;
     box-shadow: var(--sombra-media);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Banner de foto grande no topo do perfil — foto inteira, sem cortes
+   estranhos, com nome/localização sobrepostos por baixo (mesmo estilo
+   visual dos cartões da grelha, só que em tamanho grande) */
+.profile-photo-banner {
+    position: relative;
+    width: 100%;
+    height: 340px;
+    background: #E2E8F0;
+}
+
+.profile-photo-banner-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
+    display: block;
+}
+
+.profile-photo-initials-lg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: 'Fraunces', serif;
+    font-size: 72px;
+    font-weight: 700;
+}
+
+.profile-photo-featured {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(135deg, #F59E0B, #F97316);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.profile-photo-rating {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(4px);
+    color: #B45309;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(15,23,42,0.15);
+}
+
+.profile-photo-rating span {
+    color: var(--cor-texto-suave);
+    font-weight: 500;
+}
+
+.profile-photo-rating .badge-new {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #1D4ED8;
+}
+
+.profile-photo-overlay {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 40px 24px 18px;
+    background: linear-gradient(to top, rgba(15,23,42,0.88), rgba(15,23,42,0));
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: white;
+}
+
+.profile-photo-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 26px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.profile-photo-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.92);
+}
+
+.profile-photo-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.profile-body {
+    padding: 24px 28px 28px;
     display: flex;
     flex-direction: column;
     gap: 18px;
 }
-
-.profile-top {
-    display: flex;
-    gap: 18px;
-    align-items: flex-start;
-}
-
-.profile-avatar-lg {
-    width: 88px;
-    height: 88px;
-    border-radius: 14px;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Fraunces', serif;
-    font-size: 28px;
-    font-weight: 700;
-    flex-shrink: 0;
-}
-
-.profile-info { flex: 1; }
 
 .profile-tags { margin-top: -4px; }
 
@@ -1550,7 +1644,10 @@ a { text-decoration: none; color: inherit; }
 }
 
 @media (max-width: 480px) {
-    .profile-top { flex-direction: column; align-items: center; text-align: center; }
+    .profile-photo-banner { height: 240px; }
+    .profile-photo-name { font-size: 21px; }
+    .profile-photo-initials-lg { font-size: 52px; }
+    .profile-body { padding: 20px; }
     .profile-footer { flex-direction: column; gap: 12px; align-items: stretch; text-align: center; }
     .profile-actions-buttons { flex-direction: column; }
     .card-link-profile, .btn-share-profile { font-size: 11px; }
