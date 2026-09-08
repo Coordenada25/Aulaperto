@@ -38,6 +38,10 @@
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- Cropper.js (recorte de foto no cadastro) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     
     <!-- Supabase -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -228,8 +232,18 @@
                             <label for="t-foto"><i class="fas fa-camera"></i> Foto (recomendado)</label>
                             <input type="file" id="t-foto" accept="image/jpeg,image/png,image/webp" />
                             <small style="color:var(--cor-texto-suave); font-size:11px; display:block; margin-top:4px;">
-                                Máx. 3MB. JPG, PNG ou WEBP.
+                                Máx. 3MB. JPG, PNG ou WEBP. Vais poder recortar a foto a seguir.
                             </small>
+                        </div>
+                    </div>
+
+                    <div class="field" id="foto-preview-wrapper" style="display:none;">
+                        <label><i class="fas fa-image"></i> Pré-visualização (como vai aparecer no site)</label>
+                        <div class="foto-preview-card">
+                            <img id="foto-preview-img" class="foto-preview-thumb" alt="Pré-visualização da foto" />
+                            <button type="button" id="btn-refazer-crop" class="btn-refazer-crop">
+                                <i class="fas fa-crop"></i> Ajustar recorte
+                            </button>
                         </div>
                     </div>
 
@@ -383,6 +397,25 @@
     </div>
 </div>
 
+<div id="modal-cropper" class="modal-overlay" style="display: none;">
+    <div class="modal-content modal-content-cropper">
+        <button class="modal-close" onclick="fecharCropperModal()">&times;</button>
+        <div class="modal-header">
+            <h3><i class="fas fa-crop"></i> Ajusta a tua foto</h3>
+            <p>Move e amplia para escolher o que vai aparecer no cartão. É exatamente assim que os alunos vão ver-te.</p>
+        </div>
+        <div class="cropper-image-wrapper">
+            <img id="cropper-image" src="" alt="Foto a recortar" />
+        </div>
+        <div class="cropper-actions">
+            <button type="button" id="btn-cropper-cancelar" class="btn-cropper-secundario">Cancelar</button>
+            <button type="button" id="btn-cropper-confirmar" class="btn-primary">
+                <i class="fas fa-check"></i> Usar esta foto
+            </button>
+        </div>
+    </div>
+</div>
+
 <div id="toast-container"></div>
 
 <footer class="footer">
@@ -409,7 +442,7 @@
                     </li>
                     <li>
                         <i class="fas fa-envelope"></i>
-                        <a href="mailto:parcerias@aulaperto.co.mz">parcerias@aulaperto.com</a>
+                        <a href="mailto:parcerias@aulaperto.com">parcerias@aulaperto.com</a>
                     </li>
                 </ul>
             </div>
