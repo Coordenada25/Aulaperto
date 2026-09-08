@@ -129,7 +129,11 @@
         </div>
         <div style="text-align:center;">
             <div style="font-size: 26px; font-weight: 700; color: #10B981;" id="stat-approved">0</div>
-            <div style="font-size: 12px; color: var(--cor-texto-suave);">Aprovados</div>
+            <div style="font-size: 12px; color: var(--cor-texto-suave);">Aprovados (visíveis)</div>
+        </div>
+        <div style="text-align:center;">
+            <div style="font-size: 26px; font-weight: 700; color: #94A3B8;" id="stat-inactive">0</div>
+            <div style="font-size: 12px; color: var(--cor-texto-suave);">Desativados</div>
         </div>
         <div style="text-align:center;">
             <div style="font-size: 26px; font-weight: 700; color: #F97316;" id="stat-featured">0</div>
@@ -168,23 +172,24 @@
         </div>
     </div>
 
-    <!-- PROFESSORES APROVADOS (DESTAQUE) -->
+    <!-- PROFESSORES APROVADOS (DESTAQUE / ATIVO-INATIVO) -->
     <div class="admin-card">
         <h2><i class="fas fa-star"></i> Professores Aprovados</h2>
-        <p style="font-size:13px; color:#64748B; margin-bottom:16px;">Marca um professor como "Destaque" para o colocar no topo da pesquisa pública, com selo especial. Usa isto para vender destaques a professores (cobrança feita manualmente, ex. M-Pesa/e-Mola).</p>
+        <p style="font-size:13px; color:#64748B; margin-bottom:16px;">Marca um professor como "Destaque" para o colocar no topo da pesquisa pública, com selo especial (cobrança feita manualmente, ex. M-Pesa/e-Mola). Usa "Desativar" para tirar temporariamente um professor do site sem apagar os dados — podes reativar quando quiseres.</p>
         <div style="overflow-x:auto;">
             <table class="admin-table">
                 <thead>
                     <tr>
                         <th>Professor</th>
                         <th>Localização</th>
+                        <th>WhatsApp</th>
                         <th>Preço</th>
                         <th>Estado</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody id="approved-list">
-                    <tr><td colspan="5" style="text-align:center; padding:20px; color:#94A3B8;">A aguardar autenticação...</td></tr>
+                    <tr><td colspan="6" style="text-align:center; padding:20px; color:#94A3B8;">A aguardar autenticação...</td></tr>
                 </tbody>
             </table>
         </div>
