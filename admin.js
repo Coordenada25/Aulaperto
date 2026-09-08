@@ -190,6 +190,11 @@ async function carregarEstatisticas() {
             .select('*', { count: 'exact', head: true })
             .eq('status', 'approved');
 
+        const { count: inactive } = await supabaseClient
+            .from('professors')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'inactive');
+
         const { count: featured } = await supabaseClient
             .from('professors')
             .select('*', { count: 'exact', head: true })
@@ -208,6 +213,8 @@ async function carregarEstatisticas() {
         $('#stat-total').textContent = total || 0;
         $('#stat-pending').textContent = pending || 0;
         $('#stat-approved').textContent = approved || 0;
+        const statInactive = $('#stat-inactive');
+        if (statInactive) statInactive.textContent = inactive || 0;
         $('#stat-featured').textContent = featured || 0;
         $('#stat-leads').textContent = leads || 0;
         $('#stat-sponsors').textContent = sponsorsAtivos || 0;
@@ -261,7 +268,7 @@ async function carregarPendentes() {
                 <td>${(p.instruments || []).map(i => `<span style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;background:#DBEAFE;color:#1D4ED8;border:1px solid #BFDBFE;display:inline-block;margin:2px;">${escapeHtml(i)}</span>`).join(' ')}</td>
                 <td><strong>${p.price} MT</strong></td>
                 <td>
-                    <a href="https://wa.me/${p.whatsapp}" target="_blank" style="background:#25D366;color:white;padding:6px 12px;border-radius:6px;font-weight:600;display:inline-flex;align-items:center;gap:4px;text-decoration:none;font-size:13px;">
+                    <a href="https://wa.me/${p.whatsapp}" target="_blank" class="btn-wa">
                         <i class="fab fa-whatsapp"></i> ${p.whatsapp}
                     </a>
                 </td>
@@ -325,14 +332,16 @@ async function rejeitarProfessor(id) {
 }
 
 // ============================================
-// PROFESSORES APROVADOS (DESTAQUE)
+// PROFESSORES APROVADOS (DESTAQUE / ATIVO-INATIVO)
 // ============================================
+// Traz tanto os "approved" (visíveis no site) como os "inactive"
+// (desativados manualmente), para dares gestão de ambos na mesma tabela.
 async function carregarAprovados() {
     try {
         const { data, error } = await supabaseClient
             .from('professors')
-            .select('id, slug, name, neighborhood, province, price, featured')
-            .eq('status', 'approved')
+            .select('id, slug, name, neighborhood, province, whatsapp, price, featured, status')
+            .in('status', ['approved', 'inactive'])
             .order('featured', { ascending: false })
             .order('name', { ascending: true });
 
@@ -342,11 +351,13 @@ async function carregarAprovados() {
         if (!tbody) return;
 
         if (!data || data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94A3B8; padding:20px;">Nenhum professor aprovado ainda.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94A3B8; padding:20px;">Nenhum professor aprovado ainda.</td></tr>`;
             return;
         }
 
-        tbody.innerHTML = data.map(p => `
+        tbody.innerHTML = data.map(p => {
+            const ativoAgora = p.status !== 'inactive';
+            return `
             <tr>
                 <td>
                     <strong>${escapeHtml(p.name)}</strong>
@@ -361,11 +372,22 @@ async function carregarAprovados() {
                     <br />
                     <small>${escapeHtml(p.neighborhood)}</small>
                 </td>
+                <td>
+                    ${p.whatsapp
+                        ? `<a href="https://wa.me/${p.whatsapp}" target="_blank" class="btn-wa"><i class="fab fa-whatsapp"></i> ${p.whatsapp}</a>`
+                        : `<span style="font-size:11px;color:#94A3B8;">sem número</span>`
+                    }
+                </td>
                 <td><strong>${p.price} MT</strong></td>
                 <td>
                     ${p.featured
                         ? `<span class="badge-status approved"><i class="fas fa-star"></i> Destaque</span>`
                         : `<span class="badge-status pending" style="background:#F1F5F9;color:#64748B;">Normal</span>`
+                    }
+                    <br />
+                    ${ativoAgora
+                        ? `<span class="badge-status active" style="margin-top:4px; display:inline-block;"><i class="fas fa-eye"></i> Ativo no site</span>`
+                        : `<span class="badge-status inactive" style="margin-top:4px; display:inline-block;"><i class="fas fa-eye-slash"></i> Desativado</span>`
                     }
                 </td>
                 <td>
@@ -374,6 +396,10 @@ async function carregarAprovados() {
                             ? `<button onclick="alternarDestaque('${p.id}', true)" class="btn-featured-off"><i class="fas fa-star-half-alt"></i> Remover Destaque</button>`
                             : `<button onclick="alternarDestaque('${p.id}', false)" class="btn-featured-on"><i class="fas fa-star"></i> Destacar</button>`
                         }
+                        ${ativoAgora
+                            ? `<button onclick="alternarAtivo('${p.id}', true)" class="btn-reject"><i class="fas fa-eye-slash"></i> Desativar</button>`
+                            : `<button onclick="alternarAtivo('${p.id}', false)" class="btn-approve"><i class="fas fa-eye"></i> Reativar</button>`
+                        }
                         ${p.slug ? `
                         <button onclick="copiarLinkProfessor('${p.slug}')" class="btn-small-danger" style="color:#2563EB;border-color:#BFDBFE;">
                             <i class="fas fa-link"></i> Copiar Link
@@ -381,7 +407,8 @@ async function carregarAprovados() {
                     </div>
                 </td>
             </tr>
-        `).join('');
+        `;
+        }).join('');
 
     } catch (err) {
         console.error('Erro ao carregar aprovados:', err);
@@ -406,6 +433,35 @@ async function alternarDestaque(id, estaAtualmenteDestacado) {
     } catch (err) {
         console.error('Erro ao alternar destaque:', err);
         showToast('Erro ao atualizar destaque.', 'error');
+    }
+}
+
+// Desativa um professor sem apagar nada — muda o status para 'inactive',
+// o que o tira automaticamente do site público (que só mostra 'approved'),
+// mas mantém os dados guardados para poderes reativar quando quiseres.
+async function alternarAtivo(id, estaAtivo) {
+    const novoStatus = estaAtivo ? 'inactive' : 'approved';
+    const mensagemConfirm = estaAtivo
+        ? 'Desativar este professor? Ele deixa de aparecer no site público, mas os dados ficam guardados e podes reativar quando quiseres.'
+        : 'Reativar este professor no site público?';
+
+    if (!confirm(mensagemConfirm)) return;
+
+    try {
+        const { error } = await supabaseClient
+            .from('professors')
+            .update({ status: novoStatus })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        showToast(estaAtivo ? 'Professor desativado. Já não aparece no site.' : 'Professor reativado!', estaAtivo ? 'info' : 'success');
+        localStorage.removeItem('aulaperto_teachers_cache');
+        await carregarAprovados();
+        await carregarEstatisticas();
+    } catch (err) {
+        console.error('Erro ao alternar estado ativo:', err);
+        showToast('Erro ao atualizar estado do professor.', 'error');
     }
 }
 
