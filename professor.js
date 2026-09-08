@@ -181,12 +181,14 @@ async function carregarPerfil() {
 
 function renderPerfil(p) {
     const temAvaliacoes = p.total_reviews && p.total_reviews > 0 && p.rating;
+    // Selo de avaliação / "Novo" — agora vive dentro do banner da foto,
+    // no canto superior direito (mesmo padrão dos cartões da grelha).
     const ratingHTML = temAvaliacoes
-        ? `<div class="card-rating">${renderStars(p.rating)} ${Number(p.rating).toFixed(1)} <span>(${p.total_reviews})</span></div>`
-        : `<div class="card-rating"><span class="badge-new"><i class="fas fa-sparkles"></i> Novo no AulaPerto</span></div>`;
+        ? `<div class="profile-photo-rating">${renderStars(p.rating)} ${Number(p.rating).toFixed(1)} <span>(${p.total_reviews})</span></div>`
+        : `<div class="profile-photo-rating"><span class="badge-new"><i class="fas fa-sparkles"></i> Novo no AulaPerto</span></div>`;
 
     const featuredBadge = p.featured
-        ? `<span class="badge badge-featured"><i class="fas fa-star"></i> Destaque</span>`
+        ? `<span class="profile-photo-featured"><i class="fas fa-star"></i> Destaque</span>`
         : '';
 
     const instrumentos = p.instruments || [];
@@ -195,51 +197,55 @@ function renderPerfil(p) {
     $('#profile-content').innerHTML = `
         <a href="index.html" class="profile-back-link"><i class="fas fa-arrow-left"></i> Voltar à pesquisa</a>
         <div class="profile-card">
-            <div class="profile-top">
+            <div class="profile-photo-banner">
                 ${p.photo_url
-                    ? `<img src="${escapeHtml(p.photo_url)}" alt="${escapeHtml(p.name)}" class="profile-avatar-lg" style="object-fit:cover;" />`
-                    : `<div class="profile-avatar-lg" style="background:${getInitialsColor(p.name)}">${initials(p.name)}</div>`
+                    ? `<img src="${escapeHtml(p.photo_url)}" alt="${escapeHtml(p.name)}" class="profile-photo-banner-img" />`
+                    : `<div class="profile-photo-banner-img profile-photo-initials-lg" style="background:${getInitialsColor(p.name)}">${initials(p.name)}</div>`
                 }
-                <div class="profile-info">
-                    <div class="card-name" style="font-size:22px;">
+                ${featuredBadge}
+                ${ratingHTML}
+                <div class="profile-photo-overlay">
+                    <div class="profile-photo-name">
                         ${escapeHtml(p.name)}
-                        ${featuredBadge}
                         <span class="badge-verified" title="Professor verificado"><i class="fas fa-check"></i></span>
                     </div>
-                    ${ratingHTML}
-                    <div class="card-experience"><i class="fas fa-briefcase"></i> ${p.experience || 1} ${p.experience === 1 ? 'ano' : 'anos'} de experiência</div>
-                    <div class="card-location"><i class="fas fa-map-pin"></i> ${escapeHtml(p.neighborhood || '')}, ${escapeHtml(p.province || '')}</div>
+                    <div class="profile-photo-meta">
+                        <span><i class="fas fa-map-pin"></i> ${escapeHtml(p.neighborhood || '')}, ${escapeHtml(p.province || '')}</span>
+                        <span><i class="fas fa-briefcase"></i> ${p.experience || 1} ${p.experience === 1 ? 'ano' : 'anos'} de experiência</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="card-tags profile-tags">
-                ${instrumentos.map(i => `<span class="card-tag card-tag-instrument">${escapeHtml(i)}</span>`).join('')}
-            </div>
+            <div class="profile-body">
+                <div class="card-tags profile-tags">
+                    ${instrumentos.map(i => `<span class="card-tag card-tag-instrument">${escapeHtml(i)}</span>`).join('')}
+                </div>
 
-            <p class="profile-bio">${escapeHtml(p.bio) || 'Professor particular de música disponível para aulas.'}</p>
+                <p class="profile-bio">${escapeHtml(p.bio) || 'Professor particular de música disponível para aulas.'}</p>
 
-            ${p.course_program ? `
-            <div class="profile-programa">
-                <span class="profile-programa-label"><i class="fas fa-list-check"></i> O que vais aprender</span>
-                <p class="profile-programa-text">${escapeHtml(p.course_program)}</p>
-            </div>` : ''}
+                ${p.course_program ? `
+                <div class="profile-programa">
+                    <span class="profile-programa-label"><i class="fas fa-list-check"></i> O que vais aprender</span>
+                    <p class="profile-programa-text">${escapeHtml(p.course_program)}</p>
+                </div>` : ''}
 
-            <div class="profile-footer">
-                <div class="card-price">${p.price} MT <span>/ aula</span></div>
-                <button class="btn-whatsapp btn-pedir-aula-perfil">
-                    <i class="fas fa-paper-plane"></i> Pedir Aula
-                </button>
-            </div>
-
-            <div class="profile-actions">
-                <span class="profile-actions-label"><i class="fas fa-share-nodes"></i> Partilhar este perfil</span>
-                <div class="profile-actions-buttons">
-                    <button class="btn-copy-link" id="btn-copiar-link">
-                        <i class="fas fa-link"></i> Copiar Link
+                <div class="profile-footer">
+                    <div class="card-price">${p.price} MT <span>/ aula</span></div>
+                    <button class="btn-whatsapp btn-pedir-aula-perfil">
+                        <i class="fas fa-paper-plane"></i> Pedir Aula
                     </button>
-                    <a class="btn-whatsapp-share" id="btn-partilhar-whatsapp" target="_blank" rel="noopener">
-                        <i class="fab fa-whatsapp"></i> Partilhar no WhatsApp
-                    </a>
+                </div>
+
+                <div class="profile-actions">
+                    <span class="profile-actions-label"><i class="fas fa-share-nodes"></i> Partilhar este perfil</span>
+                    <div class="profile-actions-buttons">
+                        <button class="btn-copy-link" id="btn-copiar-link">
+                            <i class="fas fa-link"></i> Copiar Link
+                        </button>
+                        <a class="btn-whatsapp-share" id="btn-partilhar-whatsapp" target="_blank" rel="noopener">
+                            <i class="fab fa-whatsapp"></i> Partilhar no WhatsApp
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
