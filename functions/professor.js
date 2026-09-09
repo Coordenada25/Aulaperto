@@ -1,37 +1,38 @@
 // ============================================
-// Cloudflare Pages Function — professor.html
+// Cloudflare Pages Function — /professor (rota sem .html,
+// porque o Cloudflare Pages remove automaticamente a extensao)
 // ============================================
-// Intercepta pedidos a /professor.html?p=<slug> ANTES de o Cloudflare
-// devolver o ficheiro estático, e troca o <title> / meta description
-// genéricos pelos dados reais do professor (nome, instrumento, bairro).
+// Intercepta pedidos a /professor?p=<slug> ANTES de o Cloudflare
+// devolver o ficheiro estatico, e troca o <title> / meta description
+// genericos pelos dados reais do professor (nome, instrumento, bairro).
 //
-// Porquê: o professor.html original só preenche esses campos via
-// JavaScript no browser, depois de ir buscar os dados ao Supabase — o
-// que faz com que o Google veja o mesmo título genérico para os 20+
-// perfis de professores. Esta função resolve isso no servidor (edge),
-// sem precisar de gerar ficheiros manualmente nem correr scripts.
-//
-// Corre automaticamente para qualquer professor aprovado, atual ou
-// futuro — não exige manutenção quando aprovas alguém novo.
+// Inclui cabecalhos de debug (X-Aulaperto-*) para diagnosticar se a
+// funcao esta mesmo a correr e se encontrou o professor — remover
+// depois de confirmarmos que esta tudo a funcionar.
 
 const SUPABASE_URL = "https://zxxwxwtsolbnyzbrabwp.supabase.co";
 const SUPABASE_KEY = "sb_publishable_x0Ehx6SckG0JHXqdvOusXw_5LG12KPm";
+
+function comCabecalhosDebug(resp, estado) {
+    const nova = new Response(resp.body, resp);
+    nova.headers.set('X-Aulaperto-Function', 'hit');
+    nova.headers.set('X-Aulaperto-Status', estado);
+    return nova;
+}
 
 export async function onRequestGet(context) {
     const { request, env } = context;
     const url = new URL(request.url);
     const slug = (url.searchParams.get('p') || '').trim();
 
-    // Pede sempre o HTML estático original primeiro — se algo falhar
-    // a seguir, devolvemos este e o site continua a funcionar na mesma
-    // (só sem a melhoria de SEO), em vez de rebentar a página.
     const assetResponse = await env.ASSETS.fetch(request);
 
     if (!slug) {
-        return assetResponse;
+        return comCabecalhosDebug(assetResponse, 'sem-slug');
     }
 
     let professor = null;
+    let erroSupabase = null;
     try {
         const apiUrl = `${SUPABASE_URL}/rest/v1/professors`
             + `?select=name,bio,neighborhood,province,instruments`
@@ -49,17 +50,15 @@ export async function onRequestGet(context) {
         if (res.ok) {
             const data = await res.json();
             professor = (data && data[0]) ? data[0] : null;
+        } else {
+            erroSupabase = `http-${res.status}`;
         }
     } catch (err) {
-        // Falha silenciosa (ex: Supabase em baixo) — segue com a página
-        // genérica em vez de mostrar erro ao utilizador.
-        professor = null;
+        erroSupabase = 'excecao';
     }
 
-    // Sem professor encontrado (slug errado, pendente, inativo,
-    // rejeitado) — devolve a página tal como está, sem tentar adivinhar.
     if (!professor) {
-        return assetResponse;
+        return comCabecalhosDebug(assetResponse, erroSupabase || 'professor-nao-encontrado');
     }
 
     const instrumentos = professor.instruments || [];
@@ -103,5 +102,6 @@ export async function onRequestGet(context) {
             }
         });
 
-    return rewriter.transform(assetResponse);
+    const transformado = rewriter.transform(assetResponse);
+    return comCabecalhosDebug(transformado, 'ok');
 }
