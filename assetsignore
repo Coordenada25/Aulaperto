@@ -1,0 +1,7 @@
+.git
+.gitignore
+.wrangler
+wrangler.jsonc
+worker.js
+node_modules
+functions
