@@ -7,7 +7,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const INSTRUMENTOS = [
     "Piano", "Guitarra", "Saxofone", "Clarinete", "Guitarra Baixo",
-    "Contrabaixo", "Viola de Arco", "Violino", "Violoncelo",
+    "Contrabaixo", "Viola de Arco", "Violino", "Violoncelo", "Bateria",
     "Guitarra Clássica", "Voz", "Ukulele", "Flauta Doce", "Timbila", "Mbira"
 ];
 
