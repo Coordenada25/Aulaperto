@@ -474,34 +474,90 @@ async function carregarSponsors() {
     }
 }
 
-// Slot "Destaque" — o banner principal do hero. Um único patrocínio em
-// destaque, se existir; senão mantém o convite de venda original.
+// Slot "Destaque" — o banner principal do hero. Roda entre todos os
+// patrocínios "featured" ativos e, no fim, mostra sempre o convite de
+// venda original — assim quem vê o banner percebe que aquele espaço está
+// disponível para mais anúncios.
+let heroBannerSlides = [];
+let heroBannerIndex = 0;
+let heroBannerTimer = null;
+const HERO_BANNER_INTERVAL = 6000; // 6s por slide
+
+function construirSlidesBanner() {
+    const slidesPatrocinados = sponsors
+        .filter(s => s.style === 'featured')
+        .map(s => ({
+            tag: '🎵 Patrocinado',
+            titulo: s.title,
+            texto: s.description,
+            ctaTexto: 'Saiba mais',
+            ctaHref: s.link_url || null,
+            sponsorId: s.id
+        }));
+
+    // Slide padrão de venda — aparece sempre por último na rotação,
+    // para mostrar que o espaço pode ser preenchido por mais anúncios.
+    const slidePadrao = {
+        tag: '🎵 Parcerias',
+        titulo: 'Anuncie no AulaPerto',
+        texto: 'Conecte-se com milhares de alunos',
+        ctaTexto: 'Saiba mais',
+        ctaHref: 'mailto:parcerias@aulaperto.co.mz',
+        sponsorId: null
+    };
+
+    return [...slidesPatrocinados, slidePadrao];
+}
+
+function renderSlideBanner(slide) {
+    const container = $('#hero-banner-content');
+    if (!container || !slide) return;
+
+    const cta = slide.ctaHref
+        ? `<a href="${escapeHtml(slide.ctaHref)}" target="_blank" rel="noopener sponsored" class="btn-banner${slide.sponsorId ? ' sponsor-link' : ''}"${slide.sponsorId ? ` data-sponsor-id="${slide.sponsorId}"` : ''}>${escapeHtml(slide.ctaTexto)}</a>`
+        : '';
+
+    container.innerHTML = `
+        <span class="banner-tag">${slide.tag}</span>
+        <h3>${escapeHtml(slide.titulo)}</h3>
+        <p>${escapeHtml(slide.texto)}</p>
+        ${cta}
+    `;
+}
+
+function pararRotacaoBanner() {
+    if (heroBannerTimer) {
+        clearInterval(heroBannerTimer);
+        heroBannerTimer = null;
+    }
+}
+
+function avancarSlideBanner() {
+    const container = $('#hero-banner-content');
+    if (!container || heroBannerSlides.length <= 1) return;
+
+    container.classList.add('banner-fade-out');
+
+    setTimeout(() => {
+        heroBannerIndex = (heroBannerIndex + 1) % heroBannerSlides.length;
+        renderSlideBanner(heroBannerSlides[heroBannerIndex]);
+        container.classList.remove('banner-fade-out');
+    }, 300);
+}
+
 function renderHeroBanner() {
     const container = $('#hero-banner-content');
     if (!container) return;
 
-    const featuredSponsor = sponsors.find(s => s.style === 'featured');
+    heroBannerSlides = construirSlidesBanner();
+    heroBannerIndex = 0;
+    renderSlideBanner(heroBannerSlides[0]);
 
-    if (!featuredSponsor) {
-        container.innerHTML = `
-            <span class="banner-tag">🎵 Parcerias</span>
-            <h3>Anuncie no AulaPerto</h3>
-            <p>Conecte-se com milhares de alunos</p>
-            <a href="mailto:parcerias@aulaperto.co.mz" class="btn-banner">Saiba mais</a>
-        `;
-        return;
+    pararRotacaoBanner();
+    // Só vale a pena rodar automaticamente se houver mais do que um slide.
+    if (heroBannerSlides.length > 1) {
+        heroBannerTimer = setInterval(avancarSlideBanner, HERO_BANNER_INTERVAL);
     }
-
-    const cta = featuredSponsor.link_url
-        ? `<a href="${escapeHtml(featuredSponsor.link_url)}" target="_blank" rel="noopener sponsored" class="btn-banner sponsor-link" data-sponsor-id="${featuredSponsor.id}">Saiba mais</a>`
-        : '';
-
-    container.innerHTML = `
-        <span class="banner-tag">🎵 Patrocinado</span>
-        <h3>${escapeHtml(featuredSponsor.title)}</h3>
-        <p>${escapeHtml(featuredSponsor.description)}</p>
-        ${cta}
-    `;
 }
 
 // Slot "Padrão" — faixa fina por baixo da pesquisa. Fica invisível se não
