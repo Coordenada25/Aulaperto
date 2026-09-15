@@ -221,7 +221,20 @@ a { text-decoration: none; color: inherit; }
     box-shadow: var(--sombra-forte);
     overflow: hidden;
     position: relative;
+/* ============================================
+   ADICIONAR ao style.css — dentro da secção "Banner Principal",
+   logo a seguir à regra .banner-content já existente.
+   Isto dá o efeito de fade suave quando o banner do topo roda
+   entre os patrocínios e o convite "Anuncie no AulaPerto".
+   ============================================ */
+
+.banner-content {
+    transition: opacity 0.3s ease;
 }
+
+.banner-content.banner-fade-out {
+    opacity: 0;
+}}
 
 .banner-principal::before {
     content: '♪';
