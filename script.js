@@ -873,6 +873,14 @@ $('#form-lead').addEventListener('submit', async (e) => {
                 instrument: instrumento
             });
         }
+
+        // Meta Pixel: mesma conversão, para poderes criar Públicos/Lookalikes de Leads reais.
+        if (typeof fbq === 'function') {
+            fbq('track', 'Lead', {
+                content_name: instrumento,
+                content_category: professorNome
+            });
+        }
     } catch (err) {
         console.error('Erro:', err);
         showToast('Erro ao enviar pedido. Tenta novamente.', 'error');
