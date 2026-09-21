@@ -41,6 +41,19 @@ let fotoRecortadaBlob = null; // Blob final já recortado, pronto para upload
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
 
+// Envia o mesmo evento para o Google Analytics e (opcionalmente) para o
+// Meta Pixel, sem partir o site se algum dos dois não tiver carregado.
+function track(gaEvent, gaParams = {}, fb = null) {
+    try {
+        if (typeof gtag === 'function') gtag('event', gaEvent, gaParams);
+    } catch (e) { /* analytics nunca deve partir o site */ }
+    try {
+        if (fb && typeof fbq === 'function') {
+            fbq(fb.custom ? 'trackCustom' : 'track', fb.name, fb.params || {});
+        }
+    } catch (e) { /* idem */ }
+}
+
 // ============================================
 // UTILITÁRIOS
 // ============================================
@@ -606,6 +619,10 @@ function renderTeachers() {
     $('#results-count').textContent = `${filtered.length} ${filtered.length === 1 ? 'professor' : 'professores'}`;
     
     if (filtered.length === 0) {
+        // Sinal de oferta em falta: alguém procurou e não havia professor.
+        if (provincia || bairro || instr) {
+            track('pesquisa_sem_resultados', { provincia, bairro, instrumento: instr });
+        }
         $('#results-grid').innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-music" style="font-size:32px;margin-bottom:8px;opacity:0.4;"></i><br />
@@ -768,20 +785,31 @@ $('#results-grid').addEventListener('click', (e) => {
     const shareBtn = e.target.closest('.btn-share-profile');
     if (shareBtn) {
         const slug = shareBtn.dataset.slug;
-        if (slug) copiarLink(linkPerfilProfessor(slug));
+        if (slug) {
+            copiarLink(linkPerfilProfessor(slug));
+            track('share', { method: 'copy_link', content_type: 'professor', item_id: slug });
+        }
         return;
     }
     const btn = e.target.closest('.btn-pedir-aula');
     if (btn) {
+        track('iniciar_pedido_aula', { teacher_name: btn.dataset.nome, teacher_id: btn.dataset.id });
         abrirModalContacto(btn.dataset.nome, btn.dataset.instrumentos, btn.dataset.id);
         return;
     }
-    if (e.target.closest('.card-link-profile')) {
+    const linkPerfil = e.target.closest('.card-link-profile');
+    if (linkPerfil) {
+        const cartaoDoLink = linkPerfil.closest('.teacher-card');
+        track('ver_perfil_professor', {
+            item_id: cartaoDoLink ? cartaoDoLink.dataset.slug : '',
+            origem: 'link_perfil'
+        });
         return; // deixa o link nativo abrir o perfil normalmente
     }
     // Clique em qualquer outro sítio do cartão leva ao perfil do professor
     const card = e.target.closest('.card-clickable');
     if (card && card.dataset.slug) {
+        track('ver_perfil_professor', { item_id: card.dataset.slug, origem: 'cartao' });
         window.open(`professor.html?p=${encodeURIComponent(card.dataset.slug)}`, '_blank');
     }
 });
@@ -866,21 +894,10 @@ $('#form-lead').addEventListener('submit', async (e) => {
         fecharModal();
         showToast(`Obrigado, ${alunoNome}! Pedido registado.`, 'success');
 
-        // Analytics: marca a conversão real (visita → pedido de aula).
-        if (typeof gtag === 'function') {
-            gtag('event', 'gerar_lead', {
-                teacher_name: professorNome,
-                instrument: instrumento
-            });
-        }
-
-        // Meta Pixel: mesma conversão, para poderes criar Públicos/Lookalikes de Leads reais.
-        if (typeof fbq === 'function') {
-            fbq('track', 'Lead', {
-                content_name: instrumento,
-                content_category: professorNome
-            });
-        }
+        // Conversão real (visita → pedido de aula): GA4 + Meta Pixel.
+        track('generate_lead',
+            { teacher_name: professorNome, instrument: instrumento },
+            { name: 'Lead', params: { content_name: instrumento, content_category: professorNome } });
     } catch (err) {
         console.error('Erro:', err);
         showToast('Erro ao enviar pedido. Tenta novamente.', 'error');
@@ -1009,7 +1026,11 @@ $('#teacher-form').addEventListener('submit', async (e) => {
         }]);
         
         if (error) throw error;
-        
+
+        track('sign_up',
+            { method: 'formulario_professor' },
+            { name: 'CadastroProfessor', custom: true });
+
         showToast('Perfil submetido! Aguarde aprovação.', 'success');
         $('#success-text').textContent = 'Perfil submetido com sucesso! Irá aparecer após validação.';
         $('#success-msg').classList.add('show');
@@ -1102,7 +1123,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await carregarProfessores();
     
     // Event listeners de filtros
-    $('#f-provincia').addEventListener('change', renderTeachers);
+    // (o de #f-provincia já existe acima e chama renderTeachers)
     $('#f-instr').addEventListener('change', renderTeachers);
     $('#btn-search').addEventListener('click', renderTeachers);
 });
